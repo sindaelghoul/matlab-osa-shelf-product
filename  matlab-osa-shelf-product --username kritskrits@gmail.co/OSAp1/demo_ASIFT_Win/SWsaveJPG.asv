@@ -1,0 +1,40 @@
+function [ bDoneJob,bAdvance,routeIndex ] = SWsaveJPG( routeIndex,saveFileAs_subImg2 )
+
+[routeWindowX routeWindowY] = routeIndex.Window;
+
+actualWindowPositionX = routeWindowX;
+actualWindowPositionY = routeWindowY;
+[actualWindowSizeX actualWindowSizeY] = routeIndex.WindowSizePx;
+
+if(routeWindowX < 0) %exeeding image size
+    actualWindowPositionX = 0;
+    actualWindowSizeX = mod(routeWindowX,routeIndex.WindowSizePx(1));
+elseif(routeWindowX > shelvesSize(1)) %exeeding image size
+    bAdvance = true;
+    actualWindowPositionX = routeIndex.WindowInitial(1); %advance
+end
+
+if((routeWindowY + routeIndex.WindowSizePx(2)) < 0) %exeeding image size
+    bDoneJob = true; %% quit with appropriate message
+elseif(routeWindowY + routeIndex.WindowSizePx(2) > shelvesSize(2)) %exeeding image size
+    actualWindowPositionY = routeWindowY;
+    actualWindowSizeY = mod(shelvesSize(2) - routeWindowY,routeIndex.WindowSizePx(2)); 
+end
+
+% writing the cropped shelves
+rect_shelf = [actualWindowPositionX actualWindowPositionY actualWindowSizeX actualWindowSizeY];
+sub_shelf = imcrop(shelves,rect_shelf);
+
+routeIndex.Window = [actualWindowPositionX actualWindowPositionY];
+
+if(null saveFileAs_subImg2 )
+    imwrite(sub_shelf,saveFileAs_subImg2,'jpg','Quality',100);
+    return;
+end
+
+%figure;imshow(sub_shelf);
+
+
+
+end
+

@@ -1,0 +1,11 @@
+function [ routeIndex ] = SWadvance( routeIndex )
+    if (routeIndex.bAdvance)
+        routeIndex.Window = [routeIndex.WindowInitial(1) actualWindowPositionY] + [routeIndex.WindowSizePx(1) -1*routeIndex.WindowSizePx(2)];
+        routeIndex.bAdvance = false;
+    else
+        routeIndex.Window(1) = actualWindowPositionX + routeIndex.WindowSizePx(1);
+    end
+    
+
+end
+
