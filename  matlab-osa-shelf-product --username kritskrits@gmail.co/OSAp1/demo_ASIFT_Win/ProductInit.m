@@ -18,7 +18,7 @@ BWdfill = imfill(I_opened, 'holes');
 
 %productViewsLabled = bwlabel(BWdfill,4);
 
-productIndex.product = product
+productIndex.product = product;
 productIndex.productRP = regionprops(BWdfill, 'Centroid','BoundingBox');
 
 end

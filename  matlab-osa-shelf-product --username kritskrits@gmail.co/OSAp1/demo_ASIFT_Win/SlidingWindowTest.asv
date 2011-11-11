@@ -3,6 +3,7 @@ clear all;clc;close all;
 %%
 file_img1 = 'coffee_namess.jpg';
 file_img2 = 'shelf.jpg';
+file_img3 = 'shelfCropped.jpg';
 
 product = imread(file_img1);
 shelves = imread(file_img2);
@@ -14,6 +15,9 @@ productExampleIndex = 2;
 shelfWindowIndex = 1;
 
 productIndex = ProductInit(product);
+%%
+[ shelfObject ] = shelfDetectInit( shelves , file_img3 ,true );
+%%
 [rect_prod sub_product] = ProductGetByIndex(productIndex,productExampleIndex,[]);
 routeIndex  = SWinit(rect_prod ,shelves);
 
@@ -21,6 +25,6 @@ colorPlate=hsv(100);
 figure();imshow(shelves); hold on;
 while (~routeIndex.bDoneJob)
     [ routeIndex,rect_shelf ] = SWsaveJPG( routeIndex,[] );
-    rectangle('Position',rect_shelf,'EdgeColor',colorPlate(random));
+    rectangle('Position',rect_shelf,'EdgeColor',colorPlate(randi(100),:));
     [ routeIndex ] = SWadvance( routeIndex );
 end
