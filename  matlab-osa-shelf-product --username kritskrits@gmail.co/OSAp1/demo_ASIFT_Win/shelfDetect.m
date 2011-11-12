@@ -1,5 +1,6 @@
-function [] = shelfDetect( shelfObject , bDebug )
+function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpace)
     %%
+    shelfDetails =[];
     bDebug = true;
     %% mathematical morphology
     %close all;
@@ -35,7 +36,7 @@ function [] = shelfDetect( shelfObject , bDebug )
 
     %subplot(3,1,3);
     if(bDebug)
-     figure(12),imshow(shelves_morph);
+     figure(1),subplot(2,3,5);imshow(shelves_morph);title({'shelf detect after';'basic operations'});
     end
     %%
     s = regionprops(shelves_morph, 'Orientation', 'MajorAxisLength', ...
@@ -49,7 +50,7 @@ function [] = shelfDetect( shelfObject , bDebug )
     avgHeight = 0;
     avgHeightIterations = 0;
     if(bDebug)
-        figure(99);imshow(shelfObject.shelves), title('shelf');
+        figure(99);imshow(shelfObject.shelves), title('Contoured shelves');
     end
     for k = 1:length(s)
 
@@ -60,7 +61,7 @@ function [] = shelfDetect( shelfObject , bDebug )
         if(abs(s(k).Orientation) > 30 |  (height > 0.4*width) | height < 20)
             shelves_labeledXored = bitxor(shelves_labeled,k);
             shelves_labeled(shelves_labeledXored == 0) = 0;
-            continue;
+            continue;         
         end
 
         avgHeightIterations = avgHeightIterations+1;
@@ -109,7 +110,7 @@ function [] = shelfDetect( shelfObject , bDebug )
         hold on;plot(XY(1,:),XY(2,:),'m','LineWidth',2);
 
 
-        xv=[-size(shelf,2) size(shelf,2)];
+        xv=[-size(shelfObject.shelves,2) size(shelfObject.shelves,2)];
         yv=[0 0];
         %rotate angle alpha
         Rline(1,:)=xv;Rline(2,:)=yv;
@@ -129,17 +130,21 @@ function [] = shelfDetect( shelfObject , bDebug )
         %deg = theta;
         %lineY = tan(deg).*lineX -tan(deg).*xbar + ybar;
         %hold on; line(lineX,lineY);
+        shelfDetails = [shelfDetails; xbar ybar width height s(k).Orientation];
 
 
 
 
     end
-
+    hold off;
     %figure(999),imshow(shelves_labeled);
 
-
+    if(~bCalculateEmptySpace)
+        return;
+    end
+    
     %%
-    wholeSegmentedShelf = emptyShelf(shelfLocation,'empty.jpg');
+    wholeSegmentedShelf = shelfObject.shelvesSegmented;
     %figure(1337),imshow(wholeSegmentedShelf);
     se1 = strel('rectangle', [2 10]);
     I_opened = imerode(wholeSegmentedShelf,se1);
@@ -154,7 +159,9 @@ function [] = shelfDetect( shelfObject , bDebug )
     wholeSegmentedShelf_morph = bwareaopen(I_opened, sizeOfBannedBlobs);
     wholeSegmentedShelf_labeled = bwlabel(wholeSegmentedShelf_morph, 4);
     wholeSegmentedShelf_labeled = imfill(wholeSegmentedShelf_labeled);
-    %figure(1339),imshow(wholeSegmentedShelf_labeled);
+    if(bDebug)
+        figure(1),subplot(2,3,6);imshow(wholeSegmentedShelf_labeled);title({'empty place after';' basic operations'});
+    end
 
     %%
 
@@ -198,13 +205,17 @@ function [] = shelfDetect( shelfObject , bDebug )
 
             %BWoutline = bwperim(emptySpace);
             [r,c]= find(emptySpace > 0);
-            hold on;plot(c,r,'green');
+            if(bDebug)
+                figure(99);hold on;plot(c,r,'green');
+            end
 
             se2 = strel('line',avgHeight*0.4,90);
             treshEmptySpace = imopen(emptySpace,se2);
             %BWoutline = bwperim(treshEmptySpace);
             [r,c]= find(treshEmptySpace > 0);
-            hold on;plot(c,r,'red');
+            if(bDebug)
+                figure(99);hold on;plot(c,r,'red');
+            end
 
 
 

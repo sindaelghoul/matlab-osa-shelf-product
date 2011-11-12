@@ -19,6 +19,8 @@ productIndex = ProductInit(product);
 %%
 [ shelfObject ] = shelfDetectInit( shelves , shelfColor_FileLocation,shelfEmptyColor_FileLocation,true );
 %%
+shelves_details = shelfDetect( shelfObject , true , false );
+%%
 [rect_prod sub_product] = ProductGetByIndex(productIndex,productExampleIndex,[]);
 routeIndex  = SWinit(rect_prod ,shelves);
 

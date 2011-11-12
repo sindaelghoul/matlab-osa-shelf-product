@@ -8,7 +8,7 @@ function [ shelfObject ] = shelfDetectInit( shelves , shelfColor_FileLocation ,s
     shelfExampleCIELAB = applycform(shelfExample,cform);
 
     if(bDebug)
-        subplot(1,3,1);
+        subplot(2,3,1);
         imshow(shelves), title('shelf');
     end
 
@@ -42,8 +42,7 @@ function [ shelfObject ] = shelfDetectInit( shelves , shelfColor_FileLocation ,s
     segmented(ratioL > 1) = 255;
 
     if(bDebug)
-        subplot(1,3,2);
-        imshow(segmented);
+        subplot(2,3,2);imshow(segmented);title({'Shelf detection';'before operations'});
     end
     
     shelfObject.segmented = segmented;

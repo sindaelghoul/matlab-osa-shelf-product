@@ -205,6 +205,8 @@ for k = 1:length(s)
 
 end
 
+hold off; %figure 99
+
 %figure(999),imshow(shelves_labeled);
 
 
@@ -224,8 +226,10 @@ sizeOfBannedBlobs = floor(size(wholeSegmentedShelf,1)*size(wholeSegmentedShelf,2
 wholeSegmentedShelf_morph = bwareaopen(I_opened, sizeOfBannedBlobs);
 wholeSegmentedShelf_labeled = bwlabel(wholeSegmentedShelf_morph, 4);
 wholeSegmentedShelf_labeled = imfill(wholeSegmentedShelf_labeled);
-%figure(1339),imshow(wholeSegmentedShelf_labeled);
 
+if(bDebug)
+    figure(1339),imshow(wholeSegmentedShelf_labeled);title('empty shelves after basic operations');
+end
 %%
 
 wholeS = regionprops(wholeSegmentedShelf_labeled, 'Orientation', 'MajorAxisLength', ...

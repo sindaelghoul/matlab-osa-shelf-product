@@ -37,8 +37,7 @@ absRatioDiv = abs(ratioDiv-1);
 segmentedShelf(ratioDiv > 1.1) = 255;
 
 if(bDebug)
-    subplot(1,3,3);
-    imshow(segmentedShelf);
+    subplot(2,3,3); imshow(segmentedShelf); title({'Empty place';'before operations'});
 end
 
 
