@@ -8,6 +8,7 @@ function [ shelfObject ] = shelfDetectInit( shelves , shelfColor_FileLocation ,s
     shelfExampleCIELAB = applycform(shelfExample,cform);
 
     if(bDebug)
+        figure(1);
         subplot(2,3,1);
         imshow(shelves), title('shelf');
     end

@@ -44,14 +44,16 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
     %figure(2) ,imshow(shelves_morph);
 
 
-    %phi = linspace(0,2*pi,50);
-    %cosphi = cos(phi);
-    %sinphi = sin(phi);
+    phi = linspace(0,2*pi,50);
+    cosphi = cos(phi);
+    sinphi = sin(phi);
     avgHeight = 0;
     avgHeightIterations = 0;
+    
     if(bDebug)
         figure(99);imshow(shelfObject.shelves), title('Contoured shelves');
     end
+    
     for k = 1:length(s)
 
         theta = pi*s(k).Orientation/180;
@@ -77,13 +79,15 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
         R = [ cos(theta)   sin(theta)
              -sin(theta)   cos(theta)];
 
-        %xy = [a*cosphi; b*sinphi];
-        %xy = R*xy;
+        xy = [a*cosphi; b*sinphi];
+        xy = R*xy;
 
-        %x = xy(1,:) + xbar;
-        %y = xy(2,:) + ybar;
+        xy(1,:) = xy(1,:) + xbar;
+        xy(2,:) = xy(2,:) + ybar;
+        
+        ellipse = xy;
 
-        %hold on; plot(x,y,'r','LineWidth',2);
+        
 
         %rectangle('Position', [x y w h])
         w=s(k).BoundingBox(3); %w=s(k).MajorAxisLength; %width
@@ -107,8 +111,8 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
 
         XY(1,:) = XY(1,:) + xbar + deltaX;
         XY(2,:) = XY(2,:) + ybar - deltaY;
-        hold on;plot(XY(1,:),XY(2,:),'m','LineWidth',2);
-
+        
+        rectangle = XY;
 
         xv=[-size(shelfObject.shelves,2) size(shelfObject.shelves,2)];
         yv=[0 0];
@@ -123,14 +127,19 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
         XY(2,:) = XY(2,:) + ybar - deltaY;
         bar(k).x = XY(1,:);
         bar(k).y = XY(2,:);
+        
         if(bDebug)
-            hold on;plot(XY(1,:),XY(2,:),'black','LineWidth',1);
+            figure(99) ;      
+            hold on;plot(bar(k).x,bar(k).y,'blue','LineWidth',3);    
+            hold on;plot(ellipse(1,:),ellipse(2,:),'red','LineWidth',2);
+            hold on;plot(rectangle(1,:),rectangle(2,:),'yellow','LineWidth',2);
         end
+        
         %lineX = [0 size(shelf,2)];
         %deg = theta;
         %lineY = tan(deg).*lineX -tan(deg).*xbar + ybar;
         %hold on; line(lineX,lineY);
-        shelfDetails = [shelfDetails; xbar ybar width height s(k).Orientation];
+        shelfDetails = [shelfDetails; int32([xbar ybar width height s(k).Orientation])];
 
 
 
