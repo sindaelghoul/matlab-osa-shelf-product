@@ -1,6 +1,6 @@
 function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpace)
     %%
-    shelfDetails =[];
+    shelfDetail =[];
     bDebug = true;
     %% mathematical morphology
     %close all;
@@ -139,12 +139,19 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
         %deg = theta;
         %lineY = tan(deg).*lineX -tan(deg).*xbar + ybar;
         %hold on; line(lineX,lineY);
-        shelfDetails = [shelfDetails; int32([xbar ybar width height s(k).Orientation])];
-
-
+        shelfDetail = [shelfDetail; int32([xbar ybar width height s(k).Orientation 0])];
 
 
     end
+    
+    shelfDetails.shelfDetail = shelfDetail;
+    %shelfDetails.shelfGapPixels = ShelfGapInPixels( shelves_details ,shelves);
+
+    if(bDebug)
+        figure(99) ;      
+        hold on;plot(bar(k).x,bar(k).y,'blue','LineWidth',3);    
+    end
+    
     hold off;
     %figure(999),imshow(shelves_labeled);
 
