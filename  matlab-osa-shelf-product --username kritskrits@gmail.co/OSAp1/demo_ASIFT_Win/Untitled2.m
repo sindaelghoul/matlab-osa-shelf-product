@@ -1,5 +1,5 @@
 %%
-%%shelves_details =shelves_details.shelfDetail;
+%shelves_details =shelves_details.shelfDetail;
 %%
 close all;
 shelfXandWidth = zeros(size(shelves_details,1),3);
@@ -35,16 +35,34 @@ yMatrix([2:end],2) = yC;
 yDiff = yMatrix(:,1)-yMatrix(:,2);
 yDiff = yDiff(2:end-1,:);
 bins = linspace(0,size(shelves,1),10);
-[inds,xout] = hist(yDiff(2:end-1,:),bins);
-[yC yI]  = sort(inds(1,:));  %% get the commonest y
+[inds,xout] = hist(yDiff,bins);
+[yC yIi]  = sort(inds(1,:));  %% get the commonest y
 
-common = int32(xout(yI(end)));
+common = int32(xout(yIi(end)));
 distFromCommon = single((abs(int32(yDiff)-repmat(common,size(yDiff,1),1))))/single(size(shelves,1))
 indxEnd = find(distFromCommon < 0.1);% we want only those who fall with in the -5%..+5%
 
-indexOffset = indxEnd + 1;
+%indexOffset = indxEnd + 1;
 shelfGapPixels = mean(yDiff(indxEnd));
 
+indexOffset = zeros(size(yMatrix,1),1);
+indexOffset(1+indxEnd,:) =true;
+
+shelfDetail = shelves_details;
+indx = find(shelfDetail(:,6) == true);
+rand = transpose(random('Normal',0,double(size(shelves,2)*0.1),1,size(shelfDetail(:,6),1)))
+
+[shelfDetail(indx,1) shelfDetail(indx,1)]
+[rand(indx) rand(indx)]
+xBar = mod([shelfDetail(indx,1) shelfDetail(indx,1)]+int32([rand(indx) rand(indx)]),size(shelves,2))  ;
+yBar = [shelfDetail(indx,2) shelfDetail(indx,2)+shelfGapPixels];
+
+figure(1);
+imshow(shelves);
+hold on;
+for ii=1:size(xBar,1);
+    plot(xBar(ii,:),yBar(ii,:),'blue','LineWidth',3);
+end
 
 %%
 

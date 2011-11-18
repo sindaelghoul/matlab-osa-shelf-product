@@ -39,8 +39,10 @@ common = int32(xout(yI(end)));
 distFromCommon = single((abs(int32(yDiff)-repmat(common,size(yDiff,1),1))))/single(size(shelves,1))
 indxEnd = find(distFromCommon < 0.1);% we want only those who fall with in the -5%..+5%
 
-[0 ;yDiff(indxEnd) ;0]
 shelfGapPixels = mean(yDiff(indxEnd));
 
+%indexOffset = zeros(size(yMatrix,1),1);
+%indexOffset(1+indxEnd,:) =true;
+shelves_details(1+indxEnd,6) = true;
 end
 

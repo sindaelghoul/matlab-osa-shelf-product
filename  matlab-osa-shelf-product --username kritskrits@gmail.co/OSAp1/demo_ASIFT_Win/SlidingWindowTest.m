@@ -19,11 +19,11 @@ productIndex = ProductInit(product);
 %%
 [ shelfObject ] = shelfDetectInit( shelves , shelfColor_FileLocation,shelfEmptyColor_FileLocation,true );
 %%
-shelves_details = shelfDetect( shelfObject , true , false );
+shelves_details = shelfDetect( shelfObject , true , false ); %bools = debug,Calculate free space on shelf
 %%
 [rect_prod sub_product] = ProductGetByIndex(productIndex,productExampleIndex,[]);
-routeIndex  = SWinit(rect_prod ,shelves);
 
+routeIndex  = SWinit(rect_prod ,shelves);
 colorPlate=hsv(100);
 figure();imshow(shelves); hold on;
 while (~routeIndex.bDoneJob)

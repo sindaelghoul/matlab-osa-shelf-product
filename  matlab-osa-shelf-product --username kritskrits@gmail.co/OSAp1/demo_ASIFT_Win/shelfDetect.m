@@ -1,7 +1,7 @@
 function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpace)
     %%
     shelfDetail =[];
-    bDebug = true;
+    %bDebug = true;
     %% mathematical morphology
     %close all;
     %subplot(3,1,1);
@@ -132,7 +132,7 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
             figure(99) ;      
             hold on;plot(bar(k).x,bar(k).y,'blue','LineWidth',3);    
             hold on;plot(ellipse(1,:),ellipse(2,:),'red','LineWidth',2);
-            hold on;plot(rectangle(1,:),rectangle(2,:),'yellow','LineWidth',2);
+            %hold on;plot(rectangle(1,:),rectangle(2,:),'yellow','LineWidth',2);
         end
         
         %lineX = [0 size(shelf,2)];
@@ -140,16 +140,22 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
         %lineY = tan(deg).*lineX -tan(deg).*xbar + ybar;
         %hold on; line(lineX,lineY);
         shelfDetail = [shelfDetail; int32([xbar ybar width height s(k).Orientation 0])];
-
+        shelfDetails.shelfDetail = shelfDetail;
 
     end
     
-    shelfDetails.shelfDetail = shelfDetail;
-    %shelfDetails.shelfGapPixels = ShelfGapInPixels( shelves_details ,shelves);
+    [shelfDetails.shelfGapPixels shelfDetails.shelfDetail] = ShelfGapInPixels( shelfDetail ,shelfObject.shelves);
 
     if(bDebug)
-        figure(99) ;      
-        hold on;plot(bar(k).x,bar(k).y,'blue','LineWidth',3);    
+        indx = find(shelfDetails.shelfDetail(:,6) == true);
+        rand = transpose(random('Normal',0,double(size(shelfObject.shelves,2)*0.1),1,size(shelfDetails.shelfDetail(:,6),1)));
+        xBar = mod([shelfDetails.shelfDetail(indx,1) shelfDetails.shelfDetail(indx,1)]+int32([rand(indx) rand(indx)]),size(shelfObject.shelves,2))  ;
+        yBar = [shelfDetails.shelfDetail(indx,2) shelfDetails.shelfDetail(indx,2)+shelfDetails.shelfGapPixels];
+
+        figure(99) ;  
+        for ii=1:size(xBar,1)
+            plot(xBar(ii,:),yBar(ii,:),'yellow','LineWidth',5);
+        end 
     end
     
     hold off;
