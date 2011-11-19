@@ -1,8 +1,8 @@
 %%
 clear all;clc;close all;
 %%
-product_FileLocation = 'coffee_namess.jpg';
-shelves_FileLocation = 'shelf.jpg';
+product_FileLocation = 'coffee_namess20.jpg';
+shelves_FileLocation = 'shelf40.jpg';
 shelfColor_FileLocation = 'shelfCropped.jpg';
 shelfEmptyColor_FileLocation = 'empty.jpg';
 
