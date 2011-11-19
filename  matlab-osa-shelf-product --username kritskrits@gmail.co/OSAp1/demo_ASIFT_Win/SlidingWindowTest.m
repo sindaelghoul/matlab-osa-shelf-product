@@ -6,24 +6,20 @@ shelves_FileLocation = 'shelf40.jpg';
 shelfColor_FileLocation = 'shelfCropped.jpg';
 shelfEmptyColor_FileLocation = 'empty.jpg';
 
-product = imread(product_FileLocation);
-shelves = imread(shelves_FileLocation);
-
 saveFileAs_subImg1 = 'productExample.jpg';
 saveFileAs_subImg2 = 'shelfExample.jpg';
 
 productExampleIndex = 2;
 shelfWindowIndex = 1;
 
-productIndex = ProductInit(product);
-%%
-[ shelfObject ] = shelfDetectInit( shelves , shelfColor_FileLocation,shelfEmptyColor_FileLocation,true );
+[productIndex product] = ProductInit(product_FileLocation);
+[shelfObject shelves] = shelfDetectInit( shelves_FileLocation , shelfColor_FileLocation,shelfEmptyColor_FileLocation,true );
 %%
 shelves_details = shelfDetect( shelfObject , true , false ); %bools = debug,Calculate free space on shelf
 %%
 [rect_prod sub_product] = ProductGetByIndex(productIndex,productExampleIndex,[]);
 
-routeIndex  = SWinit(rect_prod ,shelves);
+routeIndex  = SWinit(productIndex,shelfObject,rect_prod ,shelves);
 colorPlate=hsv(100);
 figure();imshow(shelves); hold on;
 while (~routeIndex.bDoneJob)

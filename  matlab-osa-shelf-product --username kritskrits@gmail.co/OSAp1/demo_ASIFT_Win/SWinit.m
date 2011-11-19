@@ -1,4 +1,7 @@
-function [ routeIndex ] = SWinit(rect_prod ,shelves)
+function [ routeIndex ] = SWinit(productIndex,shelfObject,rect_prod ,shelves)
+    %% Calculate the size and the route progress of the sliding window
+    
+    %%
     routeIndex.bDoneJob = false;
     routeIndex.bAdvance = false;
     routeIndex.shelves = shelves;

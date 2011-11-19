@@ -9,7 +9,7 @@ bins = linspace(0,size(shelves,2),10);
 [xC xI]  = sort(inds(:,1));
 
 common = int32([xout(xI(end-1)) xout(xI(end)) xout(wI(end))]);
-distFromCommon = single((abs(int32(shelfXandWidth(:,[1 1 2]))-repmat(common,size(shelves_details,1),1))))/single(size(shelves,2))
+distFromCommon = single((abs(int32(shelfXandWidth(:,[1 1 2]))-repmat(common,size(shelves_details,1),1))))/single(size(shelves,2));
 indxEnd = find(distFromCommon(:,2) < 0.1 & distFromCommon(:,3) < 0.1);% we want only those who fall with in the -5%..+5%
 indxPreEnd = find(distFromCommon(:,1) < 0.1 & distFromCommon(:,3) < 0.1);% we want only those who fall with in the -5%..+5%
 
@@ -36,7 +36,7 @@ bins = linspace(0,size(shelves,1),10);
 [yC yI]  = sort(inds(1,:));  %% get the commonest y
 
 common = int32(xout(yI(end)));
-distFromCommon = single((abs(int32(yDiff)-repmat(common,size(yDiff,1),1))))/single(size(shelves,1))
+distFromCommon = single((abs(int32(yDiff)-repmat(common,size(yDiff,1),1))))/single(size(shelves,1));
 indxEnd = find(distFromCommon < 0.1);% we want only those who fall with in the -5%..+5%
 
 shelfGapPixels = mean(yDiff(indxEnd));

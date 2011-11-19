@@ -1,4 +1,9 @@
-function [ shelfObject ] = shelfDetectInit( shelves , shelfColor_FileLocation ,shelfEmptyColor_FileLocation,bDebug )
+function [ shelfObject shelves ] = shelfDetectInit( shelves_FileLocation , shelfColor_FileLocation ,shelfEmptyColor_FileLocation,bDebug )
+shelves = imread(shelves_FileLocation);
+
+idx = regexp(shelves_FileLocation,'\d+');
+nums = regexp(shelves_FileLocation,'\d+','match');
+shelfObject.sizeInCM = str2num(nums{end});
 
 %% shelf detection
     shelfExample = imread(shelfColor_FileLocation);

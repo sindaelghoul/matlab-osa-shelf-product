@@ -93,4 +93,10 @@ B= IIR('shelf_namess05.jpg',3,'method','linear');
  %linear, spline, pchip, cubic or v5cubic
  
  %%
+ 
+str = 'ab12cd34'
+idx = regexp(str,'\d+')
+nums = regexp(str,'\d+','match')
+
+str2num(nums{1}) 
 

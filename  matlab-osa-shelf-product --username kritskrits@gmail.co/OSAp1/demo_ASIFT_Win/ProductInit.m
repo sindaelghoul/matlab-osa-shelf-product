@@ -1,8 +1,13 @@
-function [ productIndex ] = ProductInit( product )
+function [ productIndex product ] = ProductInit( product_FileLocation )
 %% create contoured data from product views
 %clear all;clc;close all;
 %figure(1), imshow(product), title('product');
 
+product = imread(product_FileLocation);
+
+idx = regexp(product_FileLocation,'\d+');
+nums = regexp(product_FileLocation,'\d+','match');
+productIndex.sizeInCM = str2num(nums{end});
 
 bw = im2bw(product,0.9);
 %figure(2), imshow(bw), title('product bw');
