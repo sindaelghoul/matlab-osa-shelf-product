@@ -6,13 +6,13 @@ global totalMatches;
 
 totalMatches = 0;
 bWasInitSwOnce = false;
-product_FileLocation = 'newProduct20.jpg';
-shelves_FileLocation = 'shelf40.jpg';
-shelfColor_FileLocation = 'shelfCropped.jpg';
-shelfEmptyColor_FileLocation = 'empty.jpg';
+product_FileLocation = 'pics\newProduct20.jpg';
+shelves_FileLocation = 'pics\shelf40.jpg';
+shelfColor_FileLocation = 'pics\shelfCropped.jpg';
+shelfEmptyColor_FileLocation = 'pics\empty.jpg';
 
-saveFileAs_subImg1 = 'productExample.jpg';
-saveFileAs_subImg2 = 'shelfExample.jpg';
+saveFileAs_subImg1 = 'pics\productExample.jpg';
+saveFileAs_subImg2 = 'pics\shelfExample.jpg';
 
 productExampleIndex = 2;
 shelfWindowIndex = 1;
@@ -46,6 +46,6 @@ for ii=1:productIndex.Length
         a= a+1;
         disp(['total matches : ' num2str(totalMatches)]);
     end
-    disp(['product #' num2str(ii) ' took ' num2str(toc(productTime)) 'seconds']);
+    disp(['product #' num2str(ii) ' took ' num2str(toc(overallTime)) 'seconds']);
 end
 disp(['the whole process took ' num2str(toc(overallTime)) 'seconds']);

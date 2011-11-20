@@ -1,8 +1,8 @@
 function [ C_data ] = RunASIFTandSaveResults(ii,rect_shelf, file_img1, file_img2 )
     global totalMatches;
     C_data = [];
-    imgOutVert = 'imgOutVert.png';
-    imgOutHori = 'imgOutHori.png';
+    imgOutVert = 'pics\imgOutVert.png';
+    imgOutHori = 'pics\imgOutHori.png';
     matchings = 'matchings.txt';
     keys1 = 'keys1.txt';
     keys2 = 'keys2.txt';
