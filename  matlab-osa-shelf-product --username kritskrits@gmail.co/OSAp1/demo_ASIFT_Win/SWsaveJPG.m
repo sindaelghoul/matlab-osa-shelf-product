@@ -27,10 +27,12 @@ end
 % writing the cropped shelves
 rect_shelf = [actualWindowPositionX actualWindowPositionY actualWindowSizeX actualWindowSizeY];
 sub_shelf = imcrop(routeIndex.shelves,rect_shelf);
+rect_shelf(3) = size(sub_shelf,2);
+rect_shelf(4) = size(sub_shelf,1);
 
 %routeIndex.Window = [actualWindowPositionX actualWindowPositionY];
 
-if(~isempty(saveFileAs_subImg2))
+if(~isempty(saveFileAs_subImg2) && ~isempty(sub_shelf))
     imwrite(sub_shelf,saveFileAs_subImg2,'jpg','Quality',100);
     return;
 end

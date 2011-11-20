@@ -5,9 +5,9 @@ fid = fopen('matchings.txt');
 %read number of matches
 matches = cell2mat(textscan(fid, '%d',1));
 % read numeric data
-C_data = textscan(fid, '%d %d %d %d',1);
-for k = 1 : matches - 1
-    C_data = [C_data;textscan(fid, '%d %d %d %d',1)];
+C_data = [];
+for k = 1 : matches
+    C_data = [C_data; textscan(fid, '%d %d %d %d',1)];
 end
 
 C_data = cell2mat(C_data);

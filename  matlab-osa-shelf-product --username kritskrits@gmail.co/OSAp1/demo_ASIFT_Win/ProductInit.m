@@ -26,5 +26,13 @@ BWdfill = imfill(I_opened, 'holes');
 productIndex.product = product;
 productIndex.productRP = regionprops(BWdfill, 'Centroid','BoundingBox');
 
+%get average height
+productIndex.Length = size(productIndex.productRP);
+height = [];
+for ii=1:productIndex.Length
+    height = [height productIndex.productRP(ii).BoundingBox(4)];
+end
+productIndex.avgHeightPX = mean(height);
+
 end
 

@@ -1,5 +1,6 @@
 function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpace)
     %%
+    shelfDetails.shelfObject = shelfObject;
     shelfDetail =[];
     %bDebug = true;
     %% mathematical morphology
@@ -161,6 +162,8 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
     hold off;
     %figure(999),imshow(shelves_labeled);
 
+   
+    
     if(~bCalculateEmptySpace)
         return;
     end

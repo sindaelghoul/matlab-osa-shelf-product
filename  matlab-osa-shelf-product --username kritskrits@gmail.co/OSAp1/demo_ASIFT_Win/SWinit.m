@@ -1,13 +1,33 @@
-function [ routeIndex ] = SWinit(productIndex,shelfObject,rect_prod ,shelves)
-    %% Calculate the size and the route progress of the sliding window
-    
+function [ routeIndex ] = SWinit(routeIndex,productIndex,shelves_details,rect_prod ,shelves)
+    global bWasInitSwOnce;    
+    if(~bWasInitSwOnce)
+        %% Calculate the size and the route progress of the sliding window
+        ProductPxInCm = productIndex.avgHeightPX/productIndex.sizeInCM;
+        ShelvesPxInCm = shelves_details.shelfGapPixels/shelves_details.shelfObject.sizeInCM;
+        routeIndex.bImagesRatio = false;
+        routeIndex.ImagesRatio = ShelvesPxInCm/ProductPxInCm;
+        if(routeIndex.ImagesRatio > 1.2) %we need to reduce resolution
+            disp('Decreasing resolution , might take time...');
+            shelves = imresize(shelves, 1/routeIndex.ImagesRatio);
+            disp('DONE');
+            routeIndex.bImagesRatio = true;    
+        else if(routeIndex.ImagesRatio < 0.8)%we need to increase resolution
+                disp('Increasing resolution , might take time...');
+                shelves = iir(shelves_details.shelfObject.shelves_FileLocation,1/routeIndex.ImagesRatio,'method','linear');    
+                disp('DONE');
+                routeIndex.bImagesRatio = true;
+             end 
+        end
+        routeIndex.shelves = shelves;
+        bWasInitSwOnce = true;
+    end
     %%
     routeIndex.bDoneJob = false;
     routeIndex.bAdvance = false;
-    routeIndex.shelves = shelves;
+    
     
     initProductSize = [rect_prod(3) rect_prod(4)];
-    routeIndex.shelvesSize = [size(shelves(1,:,1),2) size(shelves(:,1,1),1)];
+    routeIndex.shelvesSize = [size(routeIndex.shelves(1,:,1),2) size(routeIndex.shelves(:,1,1),1)];
 
     routeIndex.WindowSizePx = initProductSize * 2; % double the size of the product
     routeIndex.AdvanceOffset = initProductSize;
@@ -18,5 +38,12 @@ function [ routeIndex ] = SWinit(productIndex,shelfObject,rect_prod ,shelves)
     routeIndex.WindowInitial = [routeWindowX routeWindowY];
     routeIndex.Window = routeIndex.WindowInitial;
     routeIndex.index = [1 1];
+    
+    try   
+        close(777);
+    catch exception
+    end
+    
+    figure(777);imshow(routeIndex.shelves); hold on; %inside SWinit now
 end
 

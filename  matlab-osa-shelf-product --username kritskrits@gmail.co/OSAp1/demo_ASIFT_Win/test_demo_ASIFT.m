@@ -25,6 +25,11 @@
 clc
 file_img1 = 'Names.jpg';
 file_img2 = 'shelf_namess05.jpg';
+
+file_img1 = 'productExample.jpg';
+file_img2 = 'shelfExample.jpg';
+
+
 imgOutVert = 'imgOutVert.png';
 imgOutHori = 'imgOutHori.png';
 matchings = 'matchings.txt';

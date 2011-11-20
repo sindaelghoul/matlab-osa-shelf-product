@@ -97,3 +97,11 @@ Z = linkage(Y,'average');
 set(H,'LineWidth',2)
 
 find(T==20)
+%%
+x = rand(800000, 1);
+
+t1 = tic;  fft(x); 
+el = toc(t1);
+
+
+disp(['blblbllbf ' num2str(el)]); 
