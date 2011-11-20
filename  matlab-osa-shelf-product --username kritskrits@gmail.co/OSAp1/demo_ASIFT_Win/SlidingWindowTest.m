@@ -46,6 +46,6 @@ for ii=1:productIndex.Length
         a= a+1;
         disp(['total matches : ' num2str(totalMatches)]);
     end
-    disp(['product #' num2str(ii) ' took ' num2str(toc(overallTime)) 'seconds']);
+    disp(['product #' num2str(ii) ' took ' num2str(toc(productTime)) 'seconds']);
 end
 disp(['the whole process took ' num2str(toc(overallTime)) 'seconds']);

@@ -21,7 +21,7 @@ function I2= iir(filename,f,varargin)
 
 % Defaults
 method= 'linear';
-displ= 'on';
+displ= 'off';
 f= max(f,1);
 npass= 1;
 
