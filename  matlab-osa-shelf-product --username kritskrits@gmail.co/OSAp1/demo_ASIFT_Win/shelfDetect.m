@@ -1,6 +1,7 @@
 function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpace)
     %%
     shelfDetails.shelfObject = shelfObject;
+    shelfDetails.sigmentedShelves = zeros(size(shelfObject.segmented));
     shelfDetail =[];
     %bDebug = true;
     %% mathematical morphology
@@ -189,7 +190,8 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
     end
 
     %%
-
+    
+    
     wholeS = regionprops(wholeSegmentedShelf_labeled, 'Orientation', 'MajorAxisLength', ...
         'MinorAxisLength', 'Eccentricity', 'Centroid' , 'BoundingBox');
 
@@ -210,6 +212,8 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
             outmat = imdilate(outmat,se2);
             outmat = imfill(outmat,'holes'); % there might be holes due to crossing line
 
+            shelfDetails.sigmentedShelves = bitor(shelfDetails.sigmentedShelves,outmat);
+            
             [specific_shelf_Compared_labeled numberOfBlobsExceptShelf] = bwlabel(not(outmat), 4);
 
             [n m]= find(specific_shelf_Compared_labeled ~= 2);
@@ -218,14 +222,18 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
             else
                 specific_shelf_Compared_labeled_only_over = bitxor(specific_shelf_Compared_labeled,2); 
             end
+            
 
+            
             %specific_shelf_Compared_labeled_only_over = specific_shelf_Compared;
             %if(numberOfBlobsExceptShelf == 2) %its being divided exactly to under and over the shelf
 
                 %figure,imshow(specific_shelf_Compared_labeled_only_over);
             %end
-            emptySpace = bitxor(specific_shelf,specific_shelf_Compared);
+            emptySpace = bitxor(specific_shelf,specific_shelf_Compared);  
             emptySpace = bitand(specific_shelf_Compared_labeled_only_over,emptySpace);
+            
+            shelfDetails.sigmentedShelves = bitor(shelfDetails.sigmentedShelves,emptySpace);
             %figure,imshow(emptySpace);
 
             %BWoutline = bwperim(emptySpace);
@@ -249,6 +257,10 @@ function [shelfDetails] = shelfDetect( shelfObject , bDebug ,bCalculateEmptySpac
 
          %   shelves_labeled(shelves_labeledXored == 0) = 0;
 
+    end
+    
+    if(bDebug)
+        figure(1),subplot(2,3,4);imshow(shelfDetails.sigmentedShelves);title({'shelves and empty';'places positions'});
     end
     hold off
 
