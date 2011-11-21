@@ -8,7 +8,7 @@ function [ C_data ] = RunASIFTandSaveResults(ii,rect_shelf, file_img1, file_img2
     keys2 = 'keys2.txt';
     flag_resize = 0;
 
-    for iDex=1:3
+    for iDex=1:5
         try
             delete(imgOutVert,imgOutHori,matchings,keys1,keys2);
             disp(['deleting old files...']);
