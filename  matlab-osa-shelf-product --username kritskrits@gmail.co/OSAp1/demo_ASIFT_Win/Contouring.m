@@ -29,7 +29,9 @@ for i=1:ii %product resolution
         %plot(C_data(:,3), C_data(:,4), 'black*','MarkerSize',10); %out of product bounds
         %hold on
         %plot(C_data(:,1), C_data(:,2), 'blue*','MarkerSize',10); %out of product bounds
-        C_data.original = [matchPoints(matchInds,8) matchPoints(matchInds,9) matchPoints(matchInds,6) matchPoints(matchInds,7)];
+        
+        % product(1,2) shelf(3,4)
+        C_data.original = [matchPoints(matchInds,6) matchPoints(matchInds,7) matchPoints(matchInds,8) matchPoints(matchInds,9)];
         
         %% wipeout the missed matches
         [C_data.sortData, C_data.originalIndexOfSorted] = sort(C_data.original);
