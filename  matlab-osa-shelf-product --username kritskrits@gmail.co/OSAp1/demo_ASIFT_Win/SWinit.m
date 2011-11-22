@@ -1,5 +1,6 @@
 function [ routeIndex ] = SWinit(routeIndex,productIndex,shelves_details,rect_prod ,shelves)
-    global bWasInitSwOnce;    
+    global bWasInitSwOnce;
+    global bShowSegmentedShelvesWhileSW;
     if(~bWasInitSwOnce)
         %% Calculate the size and the route progress of the sliding window
         ProductPxInCm = productIndex.avgHeightPX/productIndex.sizeInCM;
@@ -47,14 +48,15 @@ function [ routeIndex ] = SWinit(routeIndex,productIndex,shelves_details,rect_pr
     routeIndex.index = [1 1];
    
     
-    try   
-        close(777);
-        %close(666);
-    catch exception
+    if(bShowSegmentedShelvesWhileSW)
+        try   
+            close(777);
+            close(666);
+        catch exception
+        end
+        figure(777);imshow(routeIndex.shelves); hold on; %inside SWinit now
+        figure(666);imshow(routeIndex.shelvesSegmented); hold on; %inside SWinit now
     end
-    
-    figure(777);imshow(routeIndex.shelves); hold on; %inside SWinit now
-    %figure(666);imshow(routeIndex.shelvesSegmented); hold on; %inside SWinit now
     
     
 end
