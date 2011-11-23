@@ -96,7 +96,7 @@ elseif (isunix == 1)
 elseif (ispc == 1)
     [s, w] = dos('set NUMBER_OF_PROCESSORS');
     num_CPUs = sscanf(w, '%*21c%d', [1, Inf]);
-    num_CPUs = 4;
+    num_CPUs = num_CPUs/2;
     % set the maximum OpenMP threads to the number of processors
     setenv('OMP_STACKSIZE', '1M');
     setenv('OMP_NUM_THREADS', num2str(num_CPUs));
