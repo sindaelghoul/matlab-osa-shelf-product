@@ -4,13 +4,13 @@ clear all;clc;close all;
 global bWasInitSwOnce;
 global totalMatches;
 global bShowSegmentedShelvesWhileSW;
+global bDebug = true;
 
 bDebug = true;
 bCalcEmptyPlace = true;
 bShowSegmentedShelvesWhileSW = true;
+overLappingPrecentTresh = 0.15;
 
-totalMatches = 0;
-bWasInitSwOnce = false;
 product_FileLocation = 'pics\newProduct20.jpg';
 shelves_FileLocation = 'pics\shelf40.jpg';
 shelfColor_FileLocation = 'pics\shelfCropped.jpg';
@@ -19,6 +19,9 @@ shelfEmptyColor_FileLocation = 'pics\empty.jpg';
 saveFileAs_subImg1 = 'pics\productExample.jpg';
 saveFileAs_subImg2 = 'pics\shelfExample.jpg';
 
+% consts needed
+totalMatches = 0;
+bWasInitSwOnce = false;
 productExampleIndex = 2;
 shelfWindowIndex = 1;
 
@@ -41,7 +44,7 @@ for ii=1:productIndex.Length
     while (~routeIndex.bDoneJob)
         [ routeIndex,rect_shelf ] = SWsaveJPG( routeIndex,saveFileAs_subImg2 );
         
-        while(~IsValidPosition( rect_shelf , routeIndex.shelvesSegmented , precent ))
+        while(~IsValidPosition( rect_shelf , routeIndex.shelvesSegmented , overLappingPrecentTresh ))
             [ routeIndex ] = SWadvance( routeIndex );
             [ routeIndex,rect_shelf ] = SWsaveJPG( routeIndex,saveFileAs_subImg2 );      
         end
@@ -50,7 +53,10 @@ for ii=1:productIndex.Length
         if((rect_shelf(3) > rect_prod(3)) && (rect_shelf(4) > rect_prod(4)))
             if(bShowSegmentedShelvesWhileSW)
                 figure(777); hold on;rectangle('Position',rect_shelf,'EdgeColor',colorPlate(randi(100),:));
-                figure(666); hold on;rectangle('Position',rect_shelf,'EdgeColor',colorPlate(randi(100),:));
+                if(bDebug)
+                    figure(1),subplot(2,3,4);hold on;rectangle('Position',rect_shelf,'EdgeColor',colorPlate(randi(100),:));
+                end
+                %figure(666); hold on;rectangle('Position',rect_shelf,'EdgeColor',colorPlate(randi(100),:));
             end
             
             results = RunASIFTandSaveResults(ii,rect_shelf, saveFileAs_subImg1, saveFileAs_subImg2);

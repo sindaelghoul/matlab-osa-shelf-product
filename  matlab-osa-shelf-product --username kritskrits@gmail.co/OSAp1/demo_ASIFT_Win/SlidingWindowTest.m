@@ -4,6 +4,7 @@ clear all;clc;close all;
 global bWasInitSwOnce;
 global totalMatches;
 global bShowSegmentedShelvesWhileSW;
+global bDebug;
 
 bDebug = true;
 bCalcEmptyPlace = true;
@@ -25,9 +26,11 @@ productExampleIndex = 2;
 shelfWindowIndex = 1;
 
 [productIndex product] = ProductInit(product_FileLocation);
-[shelfObject shelves] = shelfDetectInit( shelves_FileLocation , shelfColor_FileLocation,shelfEmptyColor_FileLocation,bDebug );
+
+figure(666); imshow(product);
+[shelfObject shelves] = shelfDetectInit( shelves_FileLocation , shelfColor_FileLocation,shelfEmptyColor_FileLocation );
 %%
-shelves_details = shelfDetect( shelfObject , bDebug , bCalcEmptyPlace ); %bools = debug,Calculate free space on shelf
+shelves_details = shelfDetect( shelfObject , bCalcEmptyPlace ); %bools = debug,Calculate free space on shelf
 %%
 colorPlate=hsv(100);
 routeIndex = [];
@@ -51,8 +54,12 @@ for ii=1:productIndex.Length
                
         if((rect_shelf(3) > rect_prod(3)) && (rect_shelf(4) > rect_prod(4)))
             if(bShowSegmentedShelvesWhileSW)
-                figure(777); hold on;rectangle('Position',rect_shelf,'EdgeColor',colorPlate(randi(100),:));
-                figure(666); hold on;rectangle('Position',rect_shelf,'EdgeColor',colorPlate(randi(100),:));
+                genColor = colorPlate(randi(100),:);
+                figure(777); hold on;rectangle('Position',rect_shelf,'EdgeColor',genColor);
+                if(bDebug)
+                    figure(1),subplot(2,3,4);hold on;rectangle('Position',rect_shelf,'EdgeColor',genColor);title({'shelves and empty';'places positions'});
+                end
+                %figure(666); hold on;rectangle('Position',rect_shelf,'EdgeColor',colorPlate(randi(100),:));
             end
             
             results = RunASIFTandSaveResults(ii,rect_shelf, saveFileAs_subImg1, saveFileAs_subImg2);
