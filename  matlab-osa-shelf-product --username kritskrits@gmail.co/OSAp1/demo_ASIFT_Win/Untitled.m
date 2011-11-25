@@ -1,4 +1,8 @@
 %%
+subplot1(2,3);
+subplot1(1); plot(rand(10,1));
+subplot1(2); plot(rand(10,1)); 
+%%
 close all;
 figure(6);
 imshow(routeIndex.shelves);

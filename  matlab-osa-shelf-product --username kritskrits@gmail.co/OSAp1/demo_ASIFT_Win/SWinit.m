@@ -51,11 +51,11 @@ function [ routeIndex ] = SWinit(routeIndex,productIndex,shelves_details,rect_pr
     
     if(bShowSegmentedShelvesWhileSW)
         try   
-            close(777);
+            %close(777);
             %close(666);
         catch exception
         end
-        figure(777);imshow(routeIndex.shelves); hold on; %inside SWinit now
+        %figure(777);imshow(routeIndex.shelves); hold on; %inside SWinit now
         %figure(666);imshow(routeIndex.shelvesSegmented); hold on; %inside SWinit now
         if(bDebug)
             figure(1),subplot(2,3,4);imshow(routeIndex.shelvesSegmented);title({'shelves and empty';'places positions'});

@@ -4,7 +4,7 @@ clear all;clc;close all;
 global bWasInitSwOnce;
 global totalMatches;
 global bShowSegmentedShelvesWhileSW;
-global bDebug = true;
+global bDebug;
 
 bDebug = true;
 bCalcEmptyPlace = true;
@@ -26,9 +26,11 @@ productExampleIndex = 2;
 shelfWindowIndex = 1;
 
 [productIndex product] = ProductInit(product_FileLocation);
-[shelfObject shelves] = shelfDetectInit( shelves_FileLocation , shelfColor_FileLocation,shelfEmptyColor_FileLocation,bDebug );
+
+
+[shelfObject shelves] = shelfDetectInit( shelves_FileLocation , shelfColor_FileLocation,shelfEmptyColor_FileLocation );
 %%
-shelves_details = shelfDetect( shelfObject , bDebug , bCalcEmptyPlace ); %bools = debug,Calculate free space on shelf
+shelves_details = shelfDetect( shelfObject , bCalcEmptyPlace ); %bools = debug,Calculate free space on shelf
 %%
 colorPlate=hsv(100);
 routeIndex = [];
@@ -39,6 +41,12 @@ overallTime = tic;
 for ii=1:productIndex.Length
     productTime = tic;
     [rect_prod sub_product] = ProductGetByIndex(productIndex,ii,saveFileAs_subImg1);
+    
+    if(bDebug)
+        figure(666); imshow(product);
+        figure(666); hold on; rectangle('Position',rect_prod,'EdgeColor' ,'green', 'LineWidth',4,'LineStyle','--');
+    end
+    
     routeIndex = SWinit(routeIndex,productIndex,shelves_details,rect_prod ,shelves);
     a = 1;
     while (~routeIndex.bDoneJob)
@@ -52,9 +60,10 @@ for ii=1:productIndex.Length
                
         if((rect_shelf(3) > rect_prod(3)) && (rect_shelf(4) > rect_prod(4)))
             if(bShowSegmentedShelvesWhileSW)
-                figure(777); hold on;rectangle('Position',rect_shelf,'EdgeColor',colorPlate(randi(100),:));
                 if(bDebug)
-                    figure(1),subplot(2,3,4);hold on;rectangle('Position',rect_shelf,'EdgeColor',colorPlate(randi(100),:));
+                    genColor = colorPlate(randi(100),:);
+                    %figure(777); hold on;rectangle('Position',rect_shelf,'EdgeColor',genColor);
+                    figure(1),subplot1(2,3,4);hold on;rectangle('Position',rect_shelf,'EdgeColor',genColor);title({'shelves and empty';'places positions'});
                 end
                 %figure(666); hold on;rectangle('Position',rect_shelf,'EdgeColor',colorPlate(randi(100),:));
             end

@@ -3,7 +3,7 @@
 figure(6);
 imshow(routeIndex.shelves);
 
-for i=1:ii %product resolution
+for i=1:ii %product angle resolution
     dotColor = colorPlate(randi(100),:);
     ind = find(matchPoints(:,1)==i);
     %positions = zeros(size(ind,1),2);
@@ -11,13 +11,10 @@ for i=1:ii %product resolution
     productPositions = [matchPoints(ind,2) matchPoints(ind,3) matchPoints(ind,8) matchPoints(ind,9) matchPoints(ind,6) matchPoints(ind,7)];
     
     j=1;
-    while (j ~= size(productPositions,1)) %object resolution
+    while (j ~= size(productPositions,1)) %object on shelf resolution
         matchInds = find((productPositions(:,1) == productPositions(j,1)) & (productPositions(:,2) == productPositions(j,2)));
         j=j+size(matchInds,1); %advance in j , substructing 1
         positions = productPositions(matchInds,:);
-        figure(6);
-        hold on;
-        plot(positions(:,1)+positions(:,3),positions(:,2)+positions(:,4), '*' , 'color' , dotColor , 'MarkerSize',5*(ii-(i-1))); 
         %positions = positions*routeIndex.ImagesRatio;
         %figure(8);
         %hold on;
@@ -29,7 +26,9 @@ for i=1:ii %product resolution
         %plot(C_data(:,3), C_data(:,4), 'black*','MarkerSize',10); %out of product bounds
         %hold on
         %plot(C_data(:,1), C_data(:,2), 'blue*','MarkerSize',10); %out of product bounds
-        C_data.original = [matchPoints(matchInds,8) matchPoints(matchInds,9) matchPoints(matchInds,6) matchPoints(matchInds,7)];
+        
+        % product(1,2) shelf(3,4)
+        C_data.original = [matchPoints(matchInds,6) matchPoints(matchInds,7) matchPoints(matchInds,8) matchPoints(matchInds,9)];
         
         %% wipeout the missed matches
         [C_data.sortData, C_data.originalIndexOfSorted] = sort(C_data.original);
@@ -42,12 +41,11 @@ for i=1:ii %product resolution
         if(~isempty(C_data.diffX))
             xTagNorm = double(abs(C_data.original(C_data.diffX(1:end),3)-C_data.mean(3)))/C_data.std(3)
             xNorm = double(abs(C_data.original(C_data.diffX(1:end),1)-C_data.mean(1)))/C_data.std(1)
-            xMaxNorm = max(xTagNorm(1:end),xNorm(1:end))
-            xMinNorm = min(xTagNorm(1:end),xNorm(1:end))
+            xMaxNorm = max(xTagNorm(1:end),xNorm(1:end));
+            xMinNorm = min(xTagNorm(1:end),xNorm(1:end));
 
             for k=1:length(C_data.diffX)
                 if( xMinNorm(k) / xMaxNorm(k) < 0.9 )
-                   xMinNorm(k) / xMaxNorm(k)
                    C_data.original(C_data.diffX(k),(1:end)) = 0;
                    bRecalc = true;
                 end
@@ -55,36 +53,43 @@ for i=1:ii %product resolution
         end
 
         if(~isempty(C_data.diffY))
-        yTagNorm = double(abs(C_data.original(C_data.diffY(1:end),4)-C_data.mean(4)))/C_data.std(4)
-        yNorm = double(abs(C_data.original(C_data.diffY(1:end),2)-C_data.mean(2)))/C_data.std(2)
-        yMaxNorm = max(yTagNorm(1:end),yNorm(1:end))
-        yMinNorm = min(yTagNorm(1:end),yNorm(1:end))
+            yTagNorm = double(abs(C_data.original(C_data.diffY(1:end),4)-C_data.mean(4)))/C_data.std(4)
+            yNorm = double(abs(C_data.original(C_data.diffY(1:end),2)-C_data.mean(2)))/C_data.std(2)
+            yMaxNorm = max(yTagNorm(1:end),yNorm(1:end));
+            yMinNorm = min(yTagNorm(1:end),yNorm(1:end));
 
-        for k=1:length(C_data.diffY)
-            if( yMinNorm(k) / yMaxNorm(k) < 0.9 )
-               yMinNorm(k) / yMaxNorm(k)
-               C_data.original(C_data.diffY(k),(1:end)) = 0;
-               Recalc = true;
+            for k=1:length(C_data.diffY)
+                if( yMinNorm(k) / yMaxNorm(k) < 0.9 )
+                   C_data.original(C_data.diffY(k),(1:end)) = 0;
+                   Recalc = true;
+                end
             end
         end
-        end
 
+        dotInds = find(C_data.original(:,1) ~= 0);
+        
+        figure(6);
+        hold on;
+        plot(positions(dotInds,1)+positions(dotInds,3),positions(dotInds,2)+positions(dotInds,4), '*' , 'color' , dotColor , 'MarkerSize',5); 
+        
+        
         % calc mean and std once again with the right values
-        C_data.var = var(double(C_data.original));
+        C_data.var = var(double(C_data.original(dotInds,:)));
         if(bRecalc)
-            C_data.std = std(double(C_data.original));
-            C_data.mean = mean(double(C_data.original));
+            C_data.std = std(double(C_data.original(dotInds,:)));
+            C_data.mean = mean(double(C_data.original(dotInds,:)));
         end
 
         %% contour the findings
-        pImage = imread('Names.jpg');
-        ptImage = imread('shelf_namess05.jpg');
+        %pImage = imread('Names.jpg');
+        [rect_prod pImage] = ProductGetByIndex(productIndex,i,[]);
+        %ptImage = imread('shelf_namess05.jpg');
 
         % borders of cluster
-        % pLeft = min(C_data.sortData(find(C_data.sortData(:,1) > 0),1));
-        % pUpper = min(C_data.sortData(find(C_data.sortData(:,2) > 0),2));
-        % pRight = max(C_data.sortData(find(C_data.sortData(:,1) > 0),1));
-        % pBottom = max(C_data.sortData(find(C_data.sortData(:,2) > 0),2));
+        pLeft = min(C_data.original(dotInds,1));
+        pUpper = min(C_data.original(dotInds,2));
+        pRight = max(C_data.original(dotInds,1));
+        pBottom = max(C_data.original(dotInds,2));
         % 
         % ptLeft = min(C_data.sortData(find(C_data.sortData(:,3) > 0),3));
         % ptUpper = min(C_data.sortData(find(C_data.sortData(:,4) > 0),4));
@@ -101,148 +106,33 @@ for i=1:ii %product resolution
         C_data.ptRectangleOffset.bottom = (length(pImage(:,1,1)) - C_data.mean(2)) * ratio;
 
         %% example of conturing
-        figure(1);
+        figure(888);
         imshow(pImage);
         hold on;
-        rectangle('Position',[C_data.mean(1) - pLeft,...
-                          C_data.mean(2) - pUpper,...
-                          pLeft + pRight,...
-                          pUpper + pBottom]);
+        plot(C_data.original(dotInds,1),C_data.original(dotInds,2), '*' , 'color' , dotColor , 'MarkerSize',5);
+        hold on;
+        plot(C_data.mean(1),C_data.mean(2), '--rs','LineWidth',2,...
+                'MarkerEdgeColor','k',...
+                'MarkerFaceColor','g',...
+                'MarkerSize',10);
+        hold on;
+        rectangle('Position',[pLeft,...
+                          pUpper,...
+                          pRight - pLeft,...
+                          pBottom - pUpper]);
 
         %% example of conturing
-        figure(1);
-        imshow(ptImage);
+        figure(6);
         hold on;
-        plot(C_data.mean(3),C_data.mean(4));
-        rectangle('Position',[C_data.mean(3) - C_data.ptRectangleOffset.left,...
-                          C_data.mean(4) - C_data.ptRectangleOffset.top,...
+        plot(positions(1,1) + C_data.mean(3),positions(1,2) + C_data.mean(4), '--rs','LineWidth',2,...
+                'MarkerEdgeColor','k',...
+                'MarkerFaceColor','g',...
+                'MarkerSize',10);
+        rectangle('Position',[positions(1,1) + C_data.mean(3) - C_data.ptRectangleOffset.left,...
+                          positions(1,2) + C_data.mean(4) - C_data.ptRectangleOffset.top,...
                           C_data.ptRectangleOffset.left + C_data.ptRectangleOffset.right,...
                           C_data.ptRectangleOffset.top + C_data.ptRectangleOffset.bottom]);
 
     end
 end
-%%
-[sortDataX, IX] = sort(C_data(:,1));
-[sortDataY, IY] = sort(C_data(:,2));
-[sortDataXt, IXt] = sort(C_data(:,3));
-[sortDataYt, IYt] = sort(C_data(:,4));
-
-var(double(sortDataX))
-var(double(sortDataY))
-var(double(sortDataXt))
-var(double(sortDataYt))
-
-diffX = find(IX~=IXt);
-
-%% create contoured data from product views
-sort
-pdist
-
-%clear all;clc;close all;
-product = imread('coffee_namess.jpg');
-%figure(1), imshow(product), title('product');
-
-
-bw = im2bw(product,0.9);
-%figure(2), imshow(bw), title('product bw');
-
-se = strel('rectangle', [5 5]);
-I_closed = imclose(bw,se);
-se = strel('rectangle', [15 15]);
-I_opened = imopen(I_closed,se);
-I_opened = ~I_opened;
-BWdfill = imfill(I_opened, 'holes');
-%figure(3), imshow(BWdfill), title('product after morphological close/open');
-
-productViewsLabled = bwlabel(BWdfill,4);
-
-
-s = regionprops(BWdfill, 'Centroid');
-colorSpace = char('blue','green','red','cyan','magenta','yellow','black');
-figure(4), imshow(product), title('product with Centroid Locations');
-hold on
-numObj = numel(s);
-%indexing the product views
-for k = 1 : numObj
-    %plot(s(k).Centroid(1), s(k).Centroid(2), 'b*');
-    text(s(k).Centroid(1),s(k).Centroid(2),sprintf('%d', k),'FontSize', 25 ,'FontWeight','bold','BackgroundColor',[.7 .9 .7],'Color', colorSpace(k,:));
-end
-
-%painting the matched ASIFT cordinates
-for k = 1 : matches
-    if (productViewsLabled(C_data(k,2), C_data(k,1)) > 0)
-        %plot(C_data(k,1), C_data(k,2), strcat(colorSpace(productViewsLabled(C_data(k,2), C_data(k,1)),:),'*')); 
-        C_data(k,5) = 1;
-    else
-        %plot(C_data(k,1), C_data(k,2), 'black*','MarkerSize',30);
-        C_data(k,5) = 0;
-    end
-end
-hold off
- 
-
-%% shelf compare
-shelf = imread('mySt.JPG');
-
-cform = makecform('srgb2lab');
-shelfCIELAB = applycform(shelf,cform);
-productCIELAB = applycform(product,cform);
-
-figure(5), imshow(shelf), title('shelf with matched ASIFT cordinates');
-hold on
-%painting the matched ASIFT cordinates
-for k = 1 : matches
-    %if (productViewsLabled(C_data(k,4), C_data(k,3)) > 0)
-    if (C_data(k,5) == 0)
-        plot(C_data(k,3), C_data(k,4), 'black*','MarkerSize',10); %out of product bounds
-    else
-        
-        rect_shelf = [C_data(k,3)-3 C_data(k,4)-3 7 7];
-        rect_prod = [C_data(k,1)-3 C_data(k,2)-3 7 7];
-        
-        sub_shelf = imcrop(shelfCIELAB,rect_shelf);
-        sub_prod = imcrop(productCIELAB,rect_prod);
-        
-        if(isempty(sub_shelf))
-            continue;
-        end
-        
-        lS = mean2(sub_shelf(:,:,1));
-        aS = mean2(sub_shelf(:,:,2));
-        bS = mean2(sub_shelf(:,:,3));
-
-        lP = mean2(sub_prod(:,:,1));
-        aP = mean2(sub_prod(:,:,2));
-        bP = mean2(sub_prod(:,:,3));
-
-        %aDbS = aS/bS;
-        lDaS = lS/aS;
-        %lDbS = lS/bS;
-        %aDbP = aP/bP;
-        lDaP = lP/aP;
-        %lDbP = lP/bP;
-        
-        aAbS = abs(aS-bS);
-        %lAaS = abs(lS-aS);
-        %lAbS = abs(lS-bS);
-        aAbP = abs(aP-bP);
-        %lAaP = abs(lP-aP);
-        %lAbP = abs(lP-bP);
-        
-        ratioAbsDiff = min(aAbS,aAbP) / max(aAbS,aAbP);
-        ratioDiv = min(lDaS,lDaP) / max(lDaS,lDaP);
-        ratioL = min(lS,lP) / max(lS,lP);
-  
-        
-
-        if (ratioL < 0.4 | ratioAbsDiff < 0.35 | ratioDiv < 0.55)
-            %plot(C_data(k,1), C_data(k,2), '--rs','MarkerSize',30);
-        else
-            plot(C_data(k,3), C_data(k,4), strcat(colorSpace(productViewsLabled(C_data(k,2), C_data(k,1)),:),'*'),'MarkerSize',20);
-        end
-    end
-end
-hold off
-
-%end
 
