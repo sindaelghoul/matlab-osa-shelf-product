@@ -9,9 +9,13 @@ for i=1:ii %product angle resolution
     %positions = zeros(size(ind,1),2);
     %productPositions = [matchPoints(ind,2)+matchPoints(ind,8) matchPoints(ind,3)+matchPoints(ind,9)];
     productPositions = [matchPoints(ind,2) matchPoints(ind,3) matchPoints(ind,8) matchPoints(ind,9) matchPoints(ind,6) matchPoints(ind,7)];
-    
+    try
+        delete(g);
+    catch exp
+    end
     j=1;
-    while (j ~= size(productPositions,1)) %object on shelf resolution
+    while (j < size(productPositions,1)) %object on shelf resolution
+        C_data = [];
         matchInds = find((productPositions(:,1) == productPositions(j,1)) & (productPositions(:,2) == productPositions(j,2)));
         j=j+size(matchInds,1); %advance in j , substructing 1
         positions = productPositions(matchInds,:);
@@ -68,6 +72,7 @@ for i=1:ii %product angle resolution
 
         dotInds = find(C_data.original(:,1) ~= 0);
         
+       
         figure(6);
         hold on;
         plot(positions(dotInds,1)+positions(dotInds,3),positions(dotInds,2)+positions(dotInds,4), '*' , 'color' , dotColor , 'MarkerSize',5); 
@@ -77,14 +82,33 @@ for i=1:ii %product angle resolution
         C_data.var = var(double(C_data.original(dotInds,:)));
         if(bRecalc)
             C_data.std = std(double(C_data.original(dotInds,:)));
+            meanForFigure = C_data.mean ;
             C_data.mean = mean(double(C_data.original(dotInds,:)));
         end
 
         %% contour the findings
         %pImage = imread('Names.jpg');
         [rect_prod pImage] = ProductGetByIndex(productIndex,i,[]);
-        %ptImage = imread('shelf_namess05.jpg');
+        try
+        delete(h);
+        catch exp
+        end
+        
+        figure(888);
+        g = subplot(1,2,1);
+        imshow(pImage);hold on;
+        plot(matchPoints(matchInds,6), matchPoints(matchInds,7), 'black*', 'MarkerSize',5);
+        h = subplot(1,2,2);
+        rectX = max(positions(:,1)-1*meanForFigure(3),0); 
+        rectY = max(positions(:,2)-1*meanForFigure(4),0);
+        sub_shelf = imcrop(routeIndex.shelves,[rectX(1) rectY(1) 6*meanForFigure(3) 6*meanForFigure(4)] );
+        imshow(sub_shelf);hold on;
+        plot(meanForFigure(3)+positions(:,3),meanForFigure(4)+positions(:,4), 'black*' , 'MarkerSize',5); 
 
+        if(size(dotInds,1) < 4)
+            continue;
+        end
+        
         % borders of cluster
         pLeft = min(C_data.original(dotInds,1));
         pUpper = min(C_data.original(dotInds,2));
@@ -107,7 +131,7 @@ for i=1:ii %product angle resolution
 
         %% example of conturing
         figure(888);
-        imshow(pImage);
+        subplot(1,2,1);
         hold on;
         plot(C_data.original(dotInds,1),C_data.original(dotInds,2), '*' , 'color' , dotColor , 'MarkerSize',5);
         hold on;
@@ -120,6 +144,11 @@ for i=1:ii %product angle resolution
                           pUpper,...
                           pRight - pLeft,...
                           pBottom - pUpper]);
+        figure(888);
+        subplot(1,2,2);
+        hold on;            
+        plot(meanForFigure(3)+positions(dotInds,3),meanForFigure(4)+positions(dotInds,4), '*' , 'color' , dotColor , 'MarkerSize',5); 
+        
 
         %% example of conturing
         figure(6);
