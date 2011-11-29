@@ -1,7 +1,12 @@
 %function [ output_args ] = Contouring( input_args )
 
-figure(6);
+figure(888);
+subplot(2,3,[2 3 5 6]);
 imshow(routeIndex.shelves);
+
+diffTresh = 0.05;
+minDiff = 1-diffTresh;
+maxDiff = 1+diffTresh;
 
 for i=1:ii %product angle resolution
     dotColor = colorPlate(randi(100),:);
@@ -33,7 +38,8 @@ for i=1:ii %product angle resolution
         
         % product(1,2) shelf(3,4)
         C_data.original = [matchPoints(matchInds,6) matchPoints(matchInds,7) matchPoints(matchInds,8) matchPoints(matchInds,9)];
-        
+        C_data.data = double(C_data.original);
+        dataHeight = size(C_data.data,1);
         %% wipeout the missed matches
         [C_data.sortData, C_data.originalIndexOfSorted] = sort(C_data.original);
         C_data.std = std(double(C_data.original));
@@ -43,47 +49,66 @@ for i=1:ii %product angle resolution
 
         bRecalc = false;
         if(~isempty(C_data.diffX))
-            xTagNorm = double(abs(C_data.original(C_data.diffX(1:end),3)-C_data.mean(3)))/C_data.std(3)
-            xNorm = double(abs(C_data.original(C_data.diffX(1:end),1)-C_data.mean(1)))/C_data.std(1)
+            xTagNorm = double(C_data.original(C_data.diffX(1:end),3)-C_data.mean(3))/C_data.std(3)
+            xNorm = double(C_data.original(C_data.diffX(1:end),1)-C_data.mean(1))/C_data.std(1)
             xMaxNorm = max(xTagNorm(1:end),xNorm(1:end));
             xMinNorm = min(xTagNorm(1:end),xNorm(1:end));
 
-            for k=1:length(C_data.diffX)
-                if( xMinNorm(k) / xMaxNorm(k) < 0.9 )
-                   C_data.original(C_data.diffX(k),(1:end)) = 0;
-                   bRecalc = true;
-                end
+            xx = xMinNorm ./ xMaxNorm;
+            xxInds = find ( xx < minDiff | xx > maxDiff);
+            C_data.original(C_data.diffX(xxInds),(1:end)) = 0;
+            
+            if(~isempty(xxInds))
+                bRecalc = true;
             end
+            
+%             for k=1:length(C_data.diffX)
+%                 if( xMinNorm(k) / xMaxNorm(k) < 0.9 ) %if opposite in signs will be omitted too
+%                    C_data.original(C_data.diffX(k),(1:end)) = 0;
+%                    bRecalc = true;
+%                 end
+%             end
         end
 
         if(~isempty(C_data.diffY))
-            yTagNorm = double(abs(C_data.original(C_data.diffY(1:end),4)-C_data.mean(4)))/C_data.std(4)
-            yNorm = double(abs(C_data.original(C_data.diffY(1:end),2)-C_data.mean(2)))/C_data.std(2)
+            yTagNorm = double(C_data.original(C_data.diffY(1:end),4)-C_data.mean(4))/C_data.std(4)
+            yNorm = double(C_data.original(C_data.diffY(1:end),2)-C_data.mean(2))/C_data.std(2)
             yMaxNorm = max(yTagNorm(1:end),yNorm(1:end));
             yMinNorm = min(yTagNorm(1:end),yNorm(1:end));
 
-            for k=1:length(C_data.diffY)
-                if( yMinNorm(k) / yMaxNorm(k) < 0.9 )
-                   C_data.original(C_data.diffY(k),(1:end)) = 0;
-                   Recalc = true;
-                end
+            yy = yMinNorm ./ yMaxNorm;
+            yyInds = find ( yy < minDiff | yy > maxDiff);
+            C_data.original(C_data.diffY(yyInds),(1:end)) = 0;
+            
+            if(~isempty(yyInds))
+                bRecalc = true;
             end
+            
+%             for k=1:length(C_data.diffY)
+%                 if( yMinNorm(k) / yMaxNorm(k) < 0.9 )
+%                    C_data.original(C_data.diffY(k),(1:end)) = 0;
+%                    Recalc = true;
+%                 end
+%             end
         end
 
         dotInds = find(C_data.original(:,1) ~= 0);
         
        
-        figure(6);
+        figure(888);
+        subplot(2,3,[2 3 5 6]);
+        hold on;
+        plot(positions(1,1)+positions(:,3),positions(1,2)+positions(:,4), 'white*' , 'MarkerSize',5); 
         hold on;
         plot(positions(dotInds,1)+positions(dotInds,3),positions(dotInds,2)+positions(dotInds,4), '*' , 'color' , dotColor , 'MarkerSize',5); 
         
         
         % calc mean and std once again with the right values
-        C_data.var = var(double(C_data.original(dotInds,:)));
-        if(bRecalc)
-            C_data.std = std(double(C_data.original(dotInds,:)));
-            meanForFigure = C_data.mean ;
-            C_data.mean = mean(double(C_data.original(dotInds,:)));
+        C_data.var = var(double(C_data.original(dotInds,:)))
+        meanForFigure = C_data.mean ;
+        if(bRecalc && size(dotInds,2) > 1)
+            C_data.std = std(double(C_data.original(dotInds,:)))
+            C_data.mean = mean(double(C_data.original(dotInds,:)))
         end
 
         %% contour the findings
@@ -95,16 +120,46 @@ for i=1:ii %product angle resolution
         end
         
         figure(888);
-        g = subplot(1,2,1);
+        g = subplot(2,3,1);
         imshow(pImage);hold on;
-        plot(matchPoints(matchInds,6), matchPoints(matchInds,7), 'black*', 'MarkerSize',5);
-        h = subplot(1,2,2);
+        plot(C_data.data(:,1), C_data.data(:,2), 'white*', 'MarkerSize',5);
+        
+        for iLine = 1:dataHeight
+            X = double([C_data.data(iLine,1) C_data.mean(1)]);
+            Y = double([C_data.data(iLine,2) C_data.mean(2)]);
+            
+            line(X,Y);
+            
+            xx = X(2) - X(1);
+            yy = Y(2) - Y(1);
+            
+            V = [xx yy];
+            V1=V/norm(V);
+
+            C_data.data(iLine,5:6) = V1;
+        end
+        
+        
+        h = subplot(2,3,4);
         rectX = max(positions(:,1)-1*meanForFigure(3),0); 
         rectY = max(positions(:,2)-1*meanForFigure(4),0);
         sub_shelf = imcrop(routeIndex.shelves,[rectX(1) rectY(1) 6*meanForFigure(3) 6*meanForFigure(4)] );
         imshow(sub_shelf);hold on;
-        plot(meanForFigure(3)+positions(:,3),meanForFigure(4)+positions(:,4), 'black*' , 'MarkerSize',5); 
+        plot(meanForFigure(3)+positions(:,3),meanForFigure(4)+positions(:,4), 'white*' , 'MarkerSize',5); 
 
+        hold on;
+        
+        for iLine = 1:dataHeight
+            x = meanForFigure(3)+positions(iLine,3);
+            y = meanForFigure(4)+positions(iLine,4);
+             
+            X = double([x x+50*C_data.data(iLine,5)]);
+            Y = double([y y+50*C_data.data(iLine,6)]);
+            
+            line(X,Y);
+        end
+        
+        
         if(size(dotInds,1) < 4)
             continue;
         end
@@ -123,15 +178,16 @@ for i=1:ii %product angle resolution
         C_data.varianceRatio = C_data.var(1:2)./C_data.var(3:4);
         C_data.stdRatio = C_data.std(1:2)./C_data.std(3:4);
 
-        ratio = min(C_data.stdRatio);
-        C_data.ptRectangleOffset.left = C_data.mean(1) * ratio;
-        C_data.ptRectangleOffset.right = (length(pImage(1,:,1)) - C_data.mean(1)) * ratio;
-        C_data.ptRectangleOffset.top = C_data.mean(2) * ratio;
-        C_data.ptRectangleOffset.bottom = (length(pImage(:,1,1)) - C_data.mean(2)) * ratio;
+        ratioX = C_data.stdRatio(1);
+        ratioY = C_data.stdRatio(2);
+        C_data.ptRectangleOffset.left = C_data.mean(1) * ratioX;
+        C_data.ptRectangleOffset.right = (length(pImage(1,:,1)) - C_data.mean(1)) * ratioX;
+        C_data.ptRectangleOffset.top = C_data.mean(2) * ratioY;
+        C_data.ptRectangleOffset.bottom = (length(pImage(:,1,1)) - C_data.mean(2)) * ratioY;
 
         %% example of conturing
         figure(888);
-        subplot(1,2,1);
+        subplot(2,3,1);
         hold on;
         plot(C_data.original(dotInds,1),C_data.original(dotInds,2), '*' , 'color' , dotColor , 'MarkerSize',5);
         hold on;
@@ -145,13 +201,14 @@ for i=1:ii %product angle resolution
                           pRight - pLeft,...
                           pBottom - pUpper]);
         figure(888);
-        subplot(1,2,2);
+        subplot(2,3,4);
         hold on;            
         plot(meanForFigure(3)+positions(dotInds,3),meanForFigure(4)+positions(dotInds,4), '*' , 'color' , dotColor , 'MarkerSize',5); 
         
 
         %% example of conturing
-        figure(6);
+        figure(888);
+        subplot(2,3,[2 3 5 6]);
         hold on;
         plot(positions(1,1) + C_data.mean(3),positions(1,2) + C_data.mean(4), '--rs','LineWidth',2,...
                 'MarkerEdgeColor','k',...
