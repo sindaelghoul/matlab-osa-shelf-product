@@ -44,72 +44,62 @@ for i=1:ii %product angle resolution
         [C_data.sortData, C_data.originalIndexOfSorted] = sort(C_data.original);
         C_data.std = std(double(C_data.original));
         C_data.mean = mean(double(C_data.original));
-        C_data.diffX = find(C_data.originalIndexOfSorted(:,1)~=C_data.originalIndexOfSorted(:,3));
-        C_data.diffY = find(C_data.originalIndexOfSorted(:,2)~=C_data.originalIndexOfSorted(:,4));
-
-        bRecalc = false;
-        if(~isempty(C_data.diffX))
-            xTagNorm = double(C_data.original(C_data.diffX(1:end),3)-C_data.mean(3))/C_data.std(3)
-            xNorm = double(C_data.original(C_data.diffX(1:end),1)-C_data.mean(1))/C_data.std(1)
-            xMaxNorm = max(xTagNorm(1:end),xNorm(1:end));
-            xMinNorm = min(xTagNorm(1:end),xNorm(1:end));
-
-            xx = xMinNorm ./ xMaxNorm;
-            xxInds = find ( xx < minDiff | xx > maxDiff);
-            C_data.original(C_data.diffX(xxInds),(1:end)) = 0;
-            
-            if(~isempty(xxInds))
-                bRecalc = true;
-            end
-            
-%             for k=1:length(C_data.diffX)
-%                 if( xMinNorm(k) / xMaxNorm(k) < 0.9 ) %if opposite in signs will be omitted too
-%                    C_data.original(C_data.diffX(k),(1:end)) = 0;
-%                    bRecalc = true;
-%                 end
+        
+        
+%         C_data.diffX = find(C_data.originalIndexOfSorted(:,1)~=C_data.originalIndexOfSorted(:,3));
+%         C_data.diffY = find(C_data.originalIndexOfSorted(:,2)~=C_data.originalIndexOfSorted(:,4));
+% 
+%         bRecalc = false;
+%         if(~isempty(C_data.diffX))
+%             xTagNorm = double(C_data.original(C_data.diffX(1:end),3)-C_data.mean(3))/C_data.std(3)
+%             xNorm = double(C_data.original(C_data.diffX(1:end),1)-C_data.mean(1))/C_data.std(1)
+%             xMaxNorm = max(xTagNorm(1:end),xNorm(1:end));
+%             xMinNorm = min(xTagNorm(1:end),xNorm(1:end));
+% 
+%             xx = xMinNorm ./ xMaxNorm;
+%             xxInds = find ( xx < minDiff | xx > maxDiff);
+%             C_data.original(C_data.diffX(xxInds),(1:end)) = 0;
+%             
+%             if(~isempty(xxInds))
+%                 bRecalc = true;
 %             end
-        end
-
-        if(~isempty(C_data.diffY))
-            yTagNorm = double(C_data.original(C_data.diffY(1:end),4)-C_data.mean(4))/C_data.std(4)
-            yNorm = double(C_data.original(C_data.diffY(1:end),2)-C_data.mean(2))/C_data.std(2)
-            yMaxNorm = max(yTagNorm(1:end),yNorm(1:end));
-            yMinNorm = min(yTagNorm(1:end),yNorm(1:end));
-
-            yy = yMinNorm ./ yMaxNorm;
-            yyInds = find ( yy < minDiff | yy > maxDiff);
-            C_data.original(C_data.diffY(yyInds),(1:end)) = 0;
-            
-            if(~isempty(yyInds))
-                bRecalc = true;
-            end
-            
-%             for k=1:length(C_data.diffY)
-%                 if( yMinNorm(k) / yMaxNorm(k) < 0.9 )
-%                    C_data.original(C_data.diffY(k),(1:end)) = 0;
-%                    Recalc = true;
-%                 end
+%             
+%         end
+% 
+%         if(~isempty(C_data.diffY))
+%             yTagNorm = double(C_data.original(C_data.diffY(1:end),4)-C_data.mean(4))/C_data.std(4)
+%             yNorm = double(C_data.original(C_data.diffY(1:end),2)-C_data.mean(2))/C_data.std(2)
+%             yMaxNorm = max(yTagNorm(1:end),yNorm(1:end));
+%             yMinNorm = min(yTagNorm(1:end),yNorm(1:end));
+% 
+%             yy = yMinNorm ./ yMaxNorm;
+%             yyInds = find ( yy < minDiff | yy > maxDiff);
+%             C_data.original(C_data.diffY(yyInds),(1:end)) = 0;
+%             
+%             if(~isempty(yyInds))
+%                 bRecalc = true;
 %             end
-        end
+%             
+%         end
 
-        dotInds = find(C_data.original(:,1) ~= 0);
+%         dotInds = find(C_data.original(:,1) ~= 0);
         
        
         figure(888);
         subplot(2,3,[2 3 5 6]);
         hold on;
         plot(positions(1,1)+positions(:,3),positions(1,2)+positions(:,4), 'white*' , 'MarkerSize',5); 
-        hold on;
-        plot(positions(dotInds,1)+positions(dotInds,3),positions(dotInds,2)+positions(dotInds,4), '*' , 'color' , dotColor , 'MarkerSize',5); 
+        %hold on;
+        %plot(positions(dotInds,1)+positions(dotInds,3),positions(dotInds,2)+positions(dotInds,4), '*' , 'color' , dotColor , 'MarkerSize',5); 
         
         
         % calc mean and std once again with the right values
-        C_data.var = var(double(C_data.original(dotInds,:)))
+%         C_data.var = var(double(C_data.original(dotInds,:)))
         meanForFigure = C_data.mean ;
-        if(bRecalc && size(dotInds,2) > 1)
-            C_data.std = std(double(C_data.original(dotInds,:)))
-            C_data.mean = mean(double(C_data.original(dotInds,:)))
-        end
+%         if(bRecalc && size(dotInds,2) > 1)
+%             C_data.std = std(double(C_data.original(dotInds,:)))
+%             C_data.mean = mean(double(C_data.original(dotInds,:)))
+%         end
 
         %% contour the findings
         %pImage = imread('Names.jpg');
@@ -149,34 +139,61 @@ for i=1:ii %product angle resolution
 
         hold on;
         
+        maxMean = max(meanForFigure(3),meanForFigure(4));
+        numberOfIntersects = (line1Index  - 1)*(line1Index / 2);
+        intersections = zeros(numberOfIntersects,2);
+        lines = zeros(dataHeight,4);
         for iLine = 1:dataHeight
             x = meanForFigure(3)+positions(iLine,3);
             y = meanForFigure(4)+positions(iLine,4);
              
-            X = double([x x+50*C_data.data(iLine,5)]);
-            Y = double([y y+50*C_data.data(iLine,6)]);
+            X = double([x x+maxMean*C_data.data(iLine,5)]);
+            Y = double([y y+maxMean*C_data.data(iLine,6)]);
             
             line(X,Y);
+            lines(iLine,:) = [X(1) Y(1) X(2) Y(2)]; 
         end
         
+        iNd = 1;
+        for line1Index = 1:dataHeight
+            for line2Index = 1:line1Index
+                if(line1Index ~= line2Index)
+                    %look for intersection and plot intersection
+                    [intxX,intxY]=lineintersect(lines(line1Index,:),lines(line2Index,:));
+                    plot(intxX,intxY,'ro','MarkerFaceColor','g','LineWidth',2) %this will mark the intersection point with red 'o'
+                    if(~isnan(intxX) && ~isnan(intxY))
+                        intersections(iNd,:) = [intxX intxY];
+                        iNd=iNd+1;
+                    end
+                end
+            end
+        end
         
-        if(size(dotInds,1) < 4)
+        intersections = intersections((intersections(:,1) ~= 0 & intersections(:,2) ~= 0),:);
+        
+        if(size(intersections,1) < 3)
             continue;
         end
         
+        meanInterSection = mean(intersections);
+        plot(meanInterSection(1),meanInterSection(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
+                    
+            
+
+        
         % borders of cluster
-        pLeft = min(C_data.original(dotInds,1));
-        pUpper = min(C_data.original(dotInds,2));
-        pRight = max(C_data.original(dotInds,1));
-        pBottom = max(C_data.original(dotInds,2));
+%         pLeft = min(C_data.original(dotInds,1));
+%         pUpper = min(C_data.original(dotInds,2));
+%         pRight = max(C_data.original(dotInds,1));
+%         pBottom = max(C_data.original(dotInds,2));
         % 
         % ptLeft = min(C_data.sortData(find(C_data.sortData(:,3) > 0),3));
         % ptUpper = min(C_data.sortData(find(C_data.sortData(:,4) > 0),4));
         % ptRight = max(C_data.sortData(find(C_data.sortData(:,3) > 0),3));
         % ptBottom = max(C_data.sortData(find(C_data.sortData(:,4) > 0),4));
 
-        C_data.varianceRatio = C_data.var(1:2)./C_data.var(3:4);
-        C_data.stdRatio = C_data.std(1:2)./C_data.std(3:4);
+%         C_data.varianceRatio = C_data.var(1:2)./C_data.var(3:4);
+%         C_data.stdRatio = C_data.std(1:2)./C_data.std(3:4);
 
         ratioX = C_data.stdRatio(1);
         ratioY = C_data.stdRatio(2);
@@ -189,17 +206,15 @@ for i=1:ii %product angle resolution
         figure(888);
         subplot(2,3,1);
         hold on;
-        plot(C_data.original(dotInds,1),C_data.original(dotInds,2), '*' , 'color' , dotColor , 'MarkerSize',5);
-        hold on;
-        plot(C_data.mean(1),C_data.mean(2), '--rs','LineWidth',2,...
-                'MarkerEdgeColor','k',...
-                'MarkerFaceColor','g',...
-                'MarkerSize',10);
-        hold on;
-        rectangle('Position',[pLeft,...
-                          pUpper,...
-                          pRight - pLeft,...
-                          pBottom - pUpper]);
+%         plot(C_data.original(dotInds,1),C_data.original(dotInds,2), '*' , 'color' , dotColor , 'MarkerSize',5);
+%         hold on;
+%         plot(C_data.mean(1),C_data.mean(2), '--rs','LineWidth',2,...
+%                 'MarkerEdgeColor','k',...
+%                 'MarkerFaceColor','g',...
+%                 'MarkerSize',10);
+%        hold on;
+        plot(C_data.mean(1),C_data.mean(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
+             
         figure(888);
         subplot(2,3,4);
         hold on;            
