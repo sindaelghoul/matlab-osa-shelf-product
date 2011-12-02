@@ -139,16 +139,18 @@ for i=1:ii %product angle resolution
 
         hold on;
         
-        maxMean = max(meanForFigure(3),meanForFigure(4));
-        numberOfIntersects = (line1Index  - 1)*(line1Index / 2);
+	
+        maxMean = max(meanForFigure(3),meanForFigure(4)); %furthestLengh = double(((C_data.sortData(dataHeight,1) - C_data.sortData(1,1))^2 + (C_data.sortData(dataHeight,2) - C_data.sortData(1,2))^2))^0.5;
+
+        numberOfIntersects = (dataHeight  - 1)*(dataHeight / 2);
         intersections = zeros(numberOfIntersects,2);
         lines = zeros(dataHeight,4);
         for iLine = 1:dataHeight
             x = meanForFigure(3)+positions(iLine,3);
             y = meanForFigure(4)+positions(iLine,4);
              
-            X = double([x x+maxMean*C_data.data(iLine,5)]);
-            Y = double([y y+maxMean*C_data.data(iLine,6)]);
+            X = double([x x+maxMean*C_data.data(iLine,5)]); %X = double([x x+furthestLengh*C_data.data(iLine,5)]);
+            Y = double([y y+maxMean*C_data.data(iLine,6)]); %Y = double([y y+furthestLengh*C_data.data(iLine,6)]);
             
             line(X,Y);
             lines(iLine,:) = [X(1) Y(1) X(2) Y(2)]; 
