@@ -1,5 +1,5 @@
 %function [ output_args ] = Contouring( input_args )
-
+load('matlab4838.mat','-mat','matchPoints');
 figure(888);
 subplot(2,3,[2 3 5 6]);
 imshow(routeIndex.shelves);
