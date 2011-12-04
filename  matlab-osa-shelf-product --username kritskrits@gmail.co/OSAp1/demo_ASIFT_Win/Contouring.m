@@ -1,12 +1,12 @@
 %function [ output_args ] = Contouring( input_args )
-load('matlab4838.mat','-mat','matchPoints');
+clear all; clc; close all;
+load('matlab4838.mat','-mat','productIndex','colorPlate','ii','matchPoints','routeIndex');
 figure(888);
-subplot(2,3,[2 3 5 6]);
+subplot(2,4,[3 4 7 8]);
 imshow(routeIndex.shelves);
 
-diffTresh = 0.05;
-minDiff = 1-diffTresh;
-maxDiff = 1+diffTresh;
+diffTresh = 33; 
+
 
 for i=1:ii %product angle resolution
     dotColor = colorPlate(randi(100),:);
@@ -84,9 +84,9 @@ for i=1:ii %product angle resolution
 
 %         dotInds = find(C_data.original(:,1) ~= 0);
         
-       
+        %ploting the matched points on shelf (unfiltered)
         figure(888);
-        subplot(2,3,[2 3 5 6]);
+        subplot(2,4,[3 4 7 8]);
         hold on;
         plot(positions(1,1)+positions(:,3),positions(1,2)+positions(:,4), 'white*' , 'MarkerSize',5); 
         %hold on;
@@ -105,15 +105,19 @@ for i=1:ii %product angle resolution
         %pImage = imread('Names.jpg');
         [rect_prod pImage] = ProductGetByIndex(productIndex,i,[]);
         try
-        delete(h);
+        delete(h1);
+        delete(h2);
         catch exp
         end
         
+        %ploting the matched points on product (unfiltered)
         figure(888);
-        g = subplot(2,3,1);
+        g = subplot(2,4,1);
         imshow(pImage);hold on;
         plot(C_data.data(:,1), C_data.data(:,2), 'white*', 'MarkerSize',5);
         
+        %calculating the vector from each Matching point to center
+        %(PRODUCT)
         for iLine = 1:dataHeight
             X = double([C_data.data(iLine,1) C_data.mean(1)]);
             Y = double([C_data.data(iLine,2) C_data.mean(2)]);
@@ -130,7 +134,7 @@ for i=1:ii %product angle resolution
         end
         
         
-        h = subplot(2,3,4);
+        h1 = subplot(2,4,5);
         rectX = max(positions(:,1)-1*meanForFigure(3),0); 
         rectY = max(positions(:,2)-1*meanForFigure(4),0);
         sub_shelf = imcrop(routeIndex.shelves,[rectX(1) rectY(1) 6*meanForFigure(3) 6*meanForFigure(4)] );
@@ -156,6 +160,7 @@ for i=1:ii %product angle resolution
             lines(iLine,:) = [X(1) Y(1) X(2) Y(2)]; 
         end
         
+        %calculating the intersections of all vectors with each other
         iNd = 1;
         for line1Index = 1:dataHeight
             for line2Index = 1:line1Index
@@ -178,9 +183,39 @@ for i=1:ii %product angle resolution
         end
         
         meanInterSection = mean(intersections);
+        
+        
         plot(meanInterSection(1),meanInterSection(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
                     
+                  
+        %calculating the vector from each Matching point to mean center of
+        %intersections (ON SHELF)
+        for iLine = 1:dataHeight
+            xPoint = meanForFigure(3)+positions(iLine,3);
+            yPoint = meanForFigure(4)+positions(iLine,4);
             
+            X = double([xPoint meanInterSection(1)]);
+            Y = double([yPoint meanInterSection(2)]);
+            
+            line(X,Y , 'Color' , 'red');
+            
+            xx = X(2) - X(1);
+            yy = Y(2) - Y(1);
+            
+            V = [xx yy];
+            V1=V/norm(V);
+
+            C_data.data(iLine,7:8) = V1;
+            
+            [thetaShelf,~] = cart2pol(V1(1),V1(2));
+            [thetaProduct,~] = cart2pol(C_data.data(iLine,5),C_data.data(iLine,6));
+            
+            C_data.data(iLine,9)=(abs(thetaShelf-thetaProduct))*180/pi;
+        end
+        
+        matchInds = find(C_data.data(:,9) < diffTresh);
+        
+
 
         
         % borders of cluster
@@ -197,16 +232,22 @@ for i=1:ii %product angle resolution
 %         C_data.varianceRatio = C_data.var(1:2)./C_data.var(3:4);
 %         C_data.stdRatio = C_data.std(1:2)./C_data.std(3:4);
 
-        ratioX = C_data.stdRatio(1);
-        ratioY = C_data.stdRatio(2);
-        C_data.ptRectangleOffset.left = C_data.mean(1) * ratioX;
-        C_data.ptRectangleOffset.right = (length(pImage(1,:,1)) - C_data.mean(1)) * ratioX;
-        C_data.ptRectangleOffset.top = C_data.mean(2) * ratioY;
-        C_data.ptRectangleOffset.bottom = (length(pImage(:,1,1)) - C_data.mean(2)) * ratioY;
+        %ratioX = C_data.stdRatio(1);
+        %ratioY = C_data.stdRatio(2);
+%         C_data.ptRectangleOffset.left = C_data.mean(1) * ratioX;
+%         C_data.ptRectangleOffset.right = (length(pImage(1,:,1)) - C_data.mean(1)) * ratioX;
+%         C_data.ptRectangleOffset.top = C_data.mean(2) * ratioY;
+%         C_data.ptRectangleOffset.bottom = (length(pImage(:,1,1)) - C_data.mean(2)) * ratioY;
+
+         C_data.ptRectangleOffset.left = C_data.mean(1);
+         C_data.ptRectangleOffset.right = length(pImage(1,:,1)) - C_data.mean(1);
+         C_data.ptRectangleOffset.top = C_data.mean(2);
+         C_data.ptRectangleOffset.bottom = length(pImage(:,1,1)) - C_data.mean(2);
+
 
         %% example of conturing
         figure(888);
-        subplot(2,3,1);
+        subplot(2,4,1);
         hold on;
 %         plot(C_data.original(dotInds,1),C_data.original(dotInds,2), '*' , 'color' , dotColor , 'MarkerSize',5);
 %         hold on;
@@ -218,23 +259,36 @@ for i=1:ii %product angle resolution
         plot(C_data.mean(1),C_data.mean(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
              
         figure(888);
-        subplot(2,3,4);
+        subplot(2,4,5);
         hold on;            
-        plot(meanForFigure(3)+positions(dotInds,3),meanForFigure(4)+positions(dotInds,4), '*' , 'color' , dotColor , 'MarkerSize',5); 
+        plot(meanForFigure(3)+positions(matchInds,3),meanForFigure(4)+positions(matchInds,4), '*' , 'color' , dotColor , 'MarkerSize',5); 
         
-
-        %% example of conturing
-        figure(888);
-        subplot(2,3,[2 3 5 6]);
+        h2 = subplot(2,4,6);
+        imshow(sub_shelf);hold on;
+        plot(meanForFigure(3)+positions(:,3),meanForFigure(4)+positions(:,4), 'white*' ,'MarkerSize',5);
+        plot(meanForFigure(3)+positions(matchInds,3),meanForFigure(4)+positions(matchInds,4), '*' , 'Color' , dotColor, 'MarkerSize',5); 
         hold on;
-        plot(positions(1,1) + C_data.mean(3),positions(1,2) + C_data.mean(4), '--rs','LineWidth',2,...
-                'MarkerEdgeColor','k',...
-                'MarkerFaceColor','g',...
-                'MarkerSize',10);
-        rectangle('Position',[positions(1,1) + C_data.mean(3) - C_data.ptRectangleOffset.left,...
-                          positions(1,2) + C_data.mean(4) - C_data.ptRectangleOffset.top,...
-                          C_data.ptRectangleOffset.left + C_data.ptRectangleOffset.right,...
-                          C_data.ptRectangleOffset.top + C_data.ptRectangleOffset.bottom]);
+        plot(meanInterSection(1),meanInterSection(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
+
+        rectangle('Position',[meanInterSection(1) - C_data.ptRectangleOffset.left,...
+                              meanInterSection(2) - C_data.ptRectangleOffset.top,...
+                              C_data.ptRectangleOffset.left + C_data.ptRectangleOffset.right,...
+                              C_data.ptRectangleOffset.top + C_data.ptRectangleOffset.bottom]);
+            
+           
+        %% example of conturing
+        
+%         figure(888);
+%         subplot(2,4,[3 4 7 8]);
+%         hold on;
+%         plot(positions(1,1) + C_data.mean(3),positions(1,2) + C_data.mean(4), '--rs','LineWidth',2,...
+%                 'MarkerEdgeColor','k',...
+%                 'MarkerFaceColor','g',...
+%                 'MarkerSize',10);
+%         rectangle('Position',[positions(1,1) + C_data.mean(3) - C_data.ptRectangleOffset.left,...
+%                           positions(1,2) + C_data.mean(4) - C_data.ptRectangleOffset.top,...
+%                           C_data.ptRectangleOffset.left + C_data.ptRectangleOffset.right,...
+%                           C_data.ptRectangleOffset.top + C_data.ptRectangleOffset.bottom]);
 
     end
 end
