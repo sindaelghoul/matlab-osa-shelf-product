@@ -147,7 +147,7 @@ for i=1:ii %product angle resolution
         maxMean = max(meanForFigure(3),meanForFigure(4)); %furthestLengh = double(((C_data.sortData(dataHeight,1) - C_data.sortData(1,1))^2 + (C_data.sortData(dataHeight,2) - C_data.sortData(1,2))^2))^0.5;
 
         numberOfIntersects = (dataHeight  - 1)*(dataHeight / 2);
-        intersections = zeros(numberOfIntersects,2);
+        intersections = zeros(numberOfIntersects,5);
         lines = zeros(dataHeight,4);
         for iLine = 1:dataHeight
             x = meanForFigure(3)+positions(iLine,3);
@@ -169,7 +169,7 @@ for i=1:ii %product angle resolution
                     [intxX,intxY]=lineintersect(lines(line1Index,:),lines(line2Index,:));
                     plot(intxX,intxY,'ro','MarkerFaceColor','g','LineWidth',2) %this will mark the intersection point with red 'o'
                     if(~isnan(intxX) && ~isnan(intxY))
-                        intersections(iNd,:) = [intxX intxY];
+                        intersections(iNd,:) = [intxX intxY line1Index line2Index 0];
                         iNd=iNd+1;
                     end
                 end
@@ -214,8 +214,10 @@ for i=1:ii %product angle resolution
         end
         
         matchInds = find(C_data.data(:,9) < diffTresh);
+        size(matchInds,1)
+        dataHeight
         
-
+        intersections(:,5) = ismember(intersections(:,3),matchInds) & ismember(intersections(:,4),matchInds);
 
         
         % borders of cluster
@@ -267,9 +269,23 @@ for i=1:ii %product angle resolution
         imshow(sub_shelf);hold on;
         plot(meanForFigure(3)+positions(:,3),meanForFigure(4)+positions(:,4), 'white*' ,'MarkerSize',5);
         plot(meanForFigure(3)+positions(matchInds,3),meanForFigure(4)+positions(matchInds,4), '*' , 'Color' , dotColor, 'MarkerSize',5); 
-        hold on;
         plot(meanInterSection(1),meanInterSection(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
+        plot(meanForFigure(3) + C_data.mean(3),meanForFigure(4) + C_data.mean(4),'bo','MarkerFaceColor','r','LineWidth',2) %this will mark the intersection point with red 'o'
 
+        figure(999);
+        subplot(1,2,1);
+        imshow(pImage);hold on;
+        plot(C_data.data(:,1), C_data.data(:,2), 'white*', 'MarkerSize',5);
+        plot(C_data.mean(1),C_data.mean(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
+             
+        subplot(1,2,2);
+        imshow(sub_shelf);hold on;
+        plot(meanForFigure(3)+positions(:,3),meanForFigure(4)+positions(:,4), 'white*' ,'MarkerSize',5);
+        plot(meanForFigure(3)+positions(matchInds,3),meanForFigure(4)+positions(matchInds,4), '*' , 'Color' , dotColor, 'MarkerSize',5); 
+        plot(meanInterSection(1),meanInterSection(2),'bo','MarkerSize',10,'MarkerFaceColor','y','LineWidth',1) %this will mark the intersection point with red 'o'
+        plot(meanForFigure(3) + C_data.mean(3),meanForFigure(4) + C_data.mean(4),'bo','MarkerFaceColor','r','LineWidth',1) %this will mark the intersection point with red 'o'
+
+        
         rectangle('Position',[meanInterSection(1) - C_data.ptRectangleOffset.left,...
                               meanInterSection(2) - C_data.ptRectangleOffset.top,...
                               C_data.ptRectangleOffset.left + C_data.ptRectangleOffset.right,...
