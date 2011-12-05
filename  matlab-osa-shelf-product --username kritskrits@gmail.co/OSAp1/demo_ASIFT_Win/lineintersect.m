@@ -57,7 +57,7 @@ Pint=a\b;
 
 %when the lines are paralel there's x or y will be Inf
 if (any(Pint==Inf))
-disp('No solution found, probably the lines are paralel')
+%disp('No solution found, probably the lines are paralel')
 return
 end
 
@@ -81,12 +81,12 @@ if ((x<l1minX) | (x>l1maxX) | (y<l1minY) | (y>l1maxY) |...
        (x<l2minX) | (x>l2maxX) | (y<l2minY) | (y>l2maxY) )
 x=nan;
 y=nan;
-disp('There''s no intersection between the two lines')
+%disp('There''s no intersection between the two lines')
 return
 end
 
 catch err
 %if some strange error ocurred show it to the user
-rethrow(err)
-disp('There''s no intersection between the lines (x=nan,y=nan)')
+%rethrow(err)
+%disp('There''s no intersection between the lines (x=nan,y=nan)')
 end

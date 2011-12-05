@@ -1,13 +1,15 @@
 %function [ output_args ] = Contouring( input_args )
-clear all; clc; close all;
+%clear all; clc; close all;
 load('matlab4838.mat','-mat','productIndex','colorPlate','ii','matchPoints','routeIndex');
+%trackingDebug = double(trackingDebug);
+
 figure(888);
 subplot(2,4,[3 4 7 8]);
 imshow(routeIndex.shelves);
 
 diffTresh = 33; 
 
-
+trackingDebugIndex = 1;
 for i=1:ii %product angle resolution
     dotColor = colorPlate(randi(100),:);
     ind = find(matchPoints(:,1)==i);
@@ -160,6 +162,7 @@ for i=1:ii %product angle resolution
             lines(iLine,:) = [X(1) Y(1) X(2) Y(2)]; 
         end
         
+        time = tic;
         %calculating the intersections of all vectors with each other
         iNd = 1;
         for line1Index = 1:dataHeight
@@ -175,6 +178,7 @@ for i=1:ii %product angle resolution
                 end
             end
         end
+        timeToc = toc(time);
         
         intersections = intersections((intersections(:,1) ~= 0 & intersections(:,2) ~= 0),:);
         
@@ -214,11 +218,13 @@ for i=1:ii %product angle resolution
         end
         
         matchInds = find(C_data.data(:,9) < diffTresh);
-        size(matchInds,1)
-        dataHeight
+        
+        
         
         intersections(:,5) = ismember(intersections(:,3),matchInds) & ismember(intersections(:,4),matchInds);
 
+        trackingDebug(trackingDebugIndex,6) = timeToc;
+        trackingDebugIndex = trackingDebugIndex + 1;
         
         % borders of cluster
 %         pLeft = min(C_data.original(dotInds,1));
