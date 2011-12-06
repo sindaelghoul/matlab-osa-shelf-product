@@ -1,13 +1,16 @@
 %function [ output_args ] = Contouring( input_args )
 %clear all; clc; close all;
-load('matlab4838.mat','-mat','productIndex','colorPlate','ii','matchPoints','routeIndex');
+load('matlab4838.mat','-mat','trackingDebug','productIndex','colorPlate','ii','matchPoints','routeIndex');
 %trackingDebug = double(trackingDebug);
-
 figure(888);
 subplot(2,4,[3 4 7 8]);
 imshow(routeIndex.shelves);
 
-diffTresh = 33; 
+diffAngleTresh = 33; %in deg to each direction
+abortTresh = 0.4; %percentage
+recalcTresh = 0.75; %percentage
+numberOfIntersectsTresh = 1000;
+
 
 trackingDebugIndex = 1;
 for i=1:ii %product angle resolution
@@ -142,12 +145,10 @@ for i=1:ii %product angle resolution
         sub_shelf = imcrop(routeIndex.shelves,[rectX(1) rectY(1) 6*meanForFigure(3) 6*meanForFigure(4)] );
         imshow(sub_shelf);hold on;
         plot(meanForFigure(3)+positions(:,3),meanForFigure(4)+positions(:,4), 'white*' , 'MarkerSize',5); 
-
-        hold on;
         
 	
+        %draw the vectors which captured on PRODUCT on the SLIDING WINDOW
         maxMean = max(meanForFigure(3),meanForFigure(4)); %furthestLengh = double(((C_data.sortData(dataHeight,1) - C_data.sortData(1,1))^2 + (C_data.sortData(dataHeight,2) - C_data.sortData(1,2))^2))^0.5;
-
         numberOfIntersects = (dataHeight  - 1)*(dataHeight / 2);
         intersections = zeros(numberOfIntersects,5);
         lines = zeros(dataHeight,4);
@@ -162,69 +163,110 @@ for i=1:ii %product angle resolution
             lines(iLine,:) = [X(1) Y(1) X(2) Y(2)]; 
         end
         
-        time = tic;
-        %calculating the intersections of all vectors with each other
-        iNd = 1;
-        for line1Index = 1:dataHeight
-            for line2Index = 1:line1Index
-                if(line1Index ~= line2Index)
-                    %look for intersection and plot intersection
-                    [intxX,intxY]=lineintersect(lines(line1Index,:),lines(line2Index,:));
-                    plot(intxX,intxY,'ro','MarkerFaceColor','g','LineWidth',2) %this will mark the intersection point with red 'o'
-                    if(~isnan(intxX) && ~isnan(intxY))
-                        intersections(iNd,:) = [intxX intxY line1Index line2Index 0];
-                        iNd=iNd+1;
+        cappedRunTimes = 0;
+        while(true)
+            bCapped = false;
+            if(numberOfIntersects > numberOfIntersectsTresh)
+                rng('shuffle');
+                intersectPos = randperm(numberOfIntersects);
+                intersectPos = intersectPos(1:numberOfIntersectsTresh);
+                intersectPos = sort(intersectPos);
+                bCapped = true;
+            end
+
+            time = tic;
+            %calculating the intersections of all vectors with each other
+            iNd = 1;
+            forCounter = 0;
+            nextVal = 1;
+            for line1Index = 1:dataHeight
+                for line2Index = 1:line1Index
+                    forCounter = forCounter +1;
+                    if(line1Index ~= line2Index)
+                        if(bCapped)
+                            if(forCounter ~= intersectPos(nextVal))
+                                % not right position
+                                continue;
+                            else
+                                % position match to random set
+                                nextVal = nextVal + 1;
+                            end
+                        end
+                        %look for intersection and plot intersection
+                        [intxX,intxY]=lineintersect(lines(line1Index,:),lines(line2Index,:));
+                        plot(intxX,intxY,'ro','MarkerFaceColor','g','LineWidth',2) %this will mark the intersection point with red 'o'
+                        if(~isnan(intxX) && ~isnan(intxY))
+                            intersections(iNd,:) = [intxX intxY line1Index line2Index 0];
+                            iNd=iNd+1;
+                        end
                     end
                 end
             end
+            timeToc = toc(time);
+
+            %get real intersections
+            intersections = intersections((intersections(:,1) ~= 0 & intersections(:,2) ~= 0),:);
+
+            if(size(intersections,1) < 3)
+                continue;
+            end
+
+            meanInterSection = mean(intersections);
+
+            %calculating the vector from each Matching point to mean center of
+            %intersections (ON SHELF)
+            for iLine = 1:dataHeight
+                xPoint = meanForFigure(3)+positions(iLine,3);
+                yPoint = meanForFigure(4)+positions(iLine,4);
+
+                X = double([xPoint meanInterSection(1)]);
+                Y = double([yPoint meanInterSection(2)]);
+
+                line(X,Y , 'Color' , 'red');
+
+                xx = X(2) - X(1);
+                yy = Y(2) - Y(1);
+
+                V = [xx yy];
+                V1=V/norm(V);
+
+                C_data.data(iLine,7:8) = V1;
+
+                [thetaShelf,~] = cart2pol(V1(1),V1(2));
+                [thetaProduct,~] = cart2pol(C_data.data(iLine,5),C_data.data(iLine,6));
+
+                C_data.data(iLine,9)=(abs(thetaShelf-thetaProduct))*180/pi;
+            end
+
+            matchInds = find(C_data.data(:,9) < diffAngleTresh);
+
+            %if number of matches is below tresh (typ 40%)
+            if(matchInds / dataHeight < abortTresh) 
+                if(bCapped) 
+                    if (numberOfIntersects/numberOfIntersectsTresh > 3)
+                        %if we got enought data to randomly get a new not
+                        %overlapping set in a good propability
+                    end
+                else
+                    continue;
+                end
+
+            end
+
+            intersections(:,5) = ismember(intersections(:,3),matchInds) & ismember(intersections(:,4),matchInds);
+            
+            if(~bCapped) % walkaround for the do..while for 1 loop
+                break;
+            end
+            cappedRunTimes = cappedRunTimes + 1;
         end
-        timeToc = toc(time);
         
-        intersections = intersections((intersections(:,1) ~= 0 & intersections(:,2) ~= 0),:);
-        
-        if(size(intersections,1) < 3)
-            continue;
-        end
-        
-        meanInterSection = mean(intersections);
-        
-        
+        subplot(h); %subplot(2,4,5);
+        hold on;
         plot(meanInterSection(1),meanInterSection(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
-                    
-                  
-        %calculating the vector from each Matching point to mean center of
-        %intersections (ON SHELF)
-        for iLine = 1:dataHeight
-            xPoint = meanForFigure(3)+positions(iLine,3);
-            yPoint = meanForFigure(4)+positions(iLine,4);
-            
-            X = double([xPoint meanInterSection(1)]);
-            Y = double([yPoint meanInterSection(2)]);
-            
-            line(X,Y , 'Color' , 'red');
-            
-            xx = X(2) - X(1);
-            yy = Y(2) - Y(1);
-            
-            V = [xx yy];
-            V1=V/norm(V);
 
-            C_data.data(iLine,7:8) = V1;
-            
-            [thetaShelf,~] = cart2pol(V1(1),V1(2));
-            [thetaProduct,~] = cart2pol(C_data.data(iLine,5),C_data.data(iLine,6));
-            
-            C_data.data(iLine,9)=(abs(thetaShelf-thetaProduct))*180/pi;
-        end
-        
-        matchInds = find(C_data.data(:,9) < diffTresh);
-        
-        
-        
-        intersections(:,5) = ismember(intersections(:,3),matchInds) & ismember(intersections(:,4),matchInds);
-
-        trackingDebug(trackingDebugIndex,6) = timeToc;
-        trackingDebugIndex = trackingDebugIndex + 1;
+        %trackingDebug(trackingDebugIndex,6) = timeToc;
+        %trackingDebugIndex = trackingDebugIndex + 1;
         
         % borders of cluster
 %         pLeft = min(C_data.original(dotInds,1));
