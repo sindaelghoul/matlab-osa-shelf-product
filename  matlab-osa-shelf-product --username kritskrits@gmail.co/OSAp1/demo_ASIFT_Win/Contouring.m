@@ -243,21 +243,26 @@ for i=1:ii %product angle resolution
             %if number of matches is below tresh (typ 40%)
             if(matchInds / dataHeight < abortTresh) 
                 if(bCapped) 
-                    if (numberOfIntersects/numberOfIntersectsTresh > 3)
+                    intersectionAndTreshRatio = numberOfIntersects/numberOfIntersectsTresh;
+                    if (intersectionAndTreshRatio > 2 && cappedRunTimes < 3)
                         %if we got enought data to randomly get a new not
-                        %overlapping set in a good propability
+                        %overlapping set in a good propability and we did
+                        %this less than 3 times already
+                    else
+                        %although we are on capped run - other choice of
+                        %intersection probably wont help us
+                        continue;
                     end
                 else
                     continue;
                 end
-
+            else
+                intersections(:,5) = ismember(intersections(:,3),matchInds) & ismember(intersections(:,4),matchInds);
+                break; % walkaround for the do..while for 1 loop
             end
 
-            intersections(:,5) = ismember(intersections(:,3),matchInds) & ismember(intersections(:,4),matchInds);
-            
-            if(~bCapped) % walkaround for the do..while for 1 loop
-                break;
-            end
+
+
             cappedRunTimes = cappedRunTimes + 1;
         end
         
