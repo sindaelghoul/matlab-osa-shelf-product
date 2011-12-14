@@ -1,5 +1,5 @@
 %function [ output_args ] = Contouring( input_args )
-%clear all; clc; close all;
+clear all; clc; close all;
 load('matlab4838.mat','-mat','trackingDebug','productIndex','colorPlate','ii','matchPoints','routeIndex');
 %trackingDebug = double(trackingDebug);
 figure(888);
@@ -20,7 +20,7 @@ for i=1:ii %product angle resolution
     %productPositions = [matchPoints(ind,2)+matchPoints(ind,8) matchPoints(ind,3)+matchPoints(ind,9)];
     productPositions = [matchPoints(ind,2) matchPoints(ind,3) matchPoints(ind,8) matchPoints(ind,9) matchPoints(ind,6) matchPoints(ind,7)];
     try
-        delete(g);
+        delete(handleSubPlotProduct);
     catch exp
     end
     j=1;
@@ -49,47 +49,9 @@ for i=1:ii %product angle resolution
         [C_data.sortData, C_data.originalIndexOfSorted] = sort(C_data.original);
         C_data.std = std(double(C_data.original));
         C_data.mean = mean(double(C_data.original));
+   
         
-        
-%         C_data.diffX = find(C_data.originalIndexOfSorted(:,1)~=C_data.originalIndexOfSorted(:,3));
-%         C_data.diffY = find(C_data.originalIndexOfSorted(:,2)~=C_data.originalIndexOfSorted(:,4));
-% 
-%         bRecalc = false;
-%         if(~isempty(C_data.diffX))
-%             xTagNorm = double(C_data.original(C_data.diffX(1:end),3)-C_data.mean(3))/C_data.std(3)
-%             xNorm = double(C_data.original(C_data.diffX(1:end),1)-C_data.mean(1))/C_data.std(1)
-%             xMaxNorm = max(xTagNorm(1:end),xNorm(1:end));
-%             xMinNorm = min(xTagNorm(1:end),xNorm(1:end));
-% 
-%             xx = xMinNorm ./ xMaxNorm;
-%             xxInds = find ( xx < minDiff | xx > maxDiff);
-%             C_data.original(C_data.diffX(xxInds),(1:end)) = 0;
-%             
-%             if(~isempty(xxInds))
-%                 bRecalc = true;
-%             end
-%             
-%         end
-% 
-%         if(~isempty(C_data.diffY))
-%             yTagNorm = double(C_data.original(C_data.diffY(1:end),4)-C_data.mean(4))/C_data.std(4)
-%             yNorm = double(C_data.original(C_data.diffY(1:end),2)-C_data.mean(2))/C_data.std(2)
-%             yMaxNorm = max(yTagNorm(1:end),yNorm(1:end));
-%             yMinNorm = min(yTagNorm(1:end),yNorm(1:end));
-% 
-%             yy = yMinNorm ./ yMaxNorm;
-%             yyInds = find ( yy < minDiff | yy > maxDiff);
-%             C_data.original(C_data.diffY(yyInds),(1:end)) = 0;
-%             
-%             if(~isempty(yyInds))
-%                 bRecalc = true;
-%             end
-%             
-%         end
-
-%         dotInds = find(C_data.original(:,1) ~= 0);
-        
-        %ploting the matched points on shelf (unfiltered)
+        %ploting the matched points on shelf (unfiltered) [white]
         figure(888);
         subplot(2,4,[3 4 7 8]);
         hold on;
@@ -110,19 +72,19 @@ for i=1:ii %product angle resolution
         %pImage = imread('Names.jpg');
         [rect_prod pImage] = ProductGetByIndex(productIndex,i,[]);
         try
-        delete(h1);
+        delete(handleSubPlotSlidingWindowLEFT);
         delete(h2);
         catch exp
         end
         
-        %ploting the matched points on product (unfiltered)
+        %ploting the matched points on product (unfiltered) [white]
         figure(888);
-        g = subplot(2,4,1);
+        handleSubPlotProduct = subplot(2,4,1);
         imshow(pImage);hold on;
         plot(C_data.data(:,1), C_data.data(:,2), 'white*', 'MarkerSize',5);
         
         %calculating the vector from each Matching point to center
-        %(PRODUCT)
+        %(PRODUCT) and paint them [blue lines]
         for iLine = 1:dataHeight
             X = double([C_data.data(iLine,1) C_data.mean(1)]);
             Y = double([C_data.data(iLine,2) C_data.mean(2)]);
@@ -139,19 +101,25 @@ for i=1:ii %product angle resolution
         end
         
         
-        h1 = subplot(2,4,5);
+        
         rectX = max(positions(:,1)-1*meanForFigure(3),0); 
         rectY = max(positions(:,2)-1*meanForFigure(4),0);
         sub_shelf = imcrop(routeIndex.shelves,[rectX(1) rectY(1) 6*meanForFigure(3) 6*meanForFigure(4)] );
+        handleSubPlotSlidingWindowLEFT = subplot(2,4,5);
         imshow(sub_shelf);hold on;
+        %ploting the matched points on sliding window (unfiltered) [white]
         plot(meanForFigure(3)+positions(:,3),meanForFigure(4)+positions(:,4), 'white*' , 'MarkerSize',5); 
         
 	
-        %draw the vectors which captured on PRODUCT on the SLIDING WINDOW
+        %draw the vectors on the SLIDING WINDOW which captured were on
+        %product [blue lines]
         maxMean = max(meanForFigure(3),meanForFigure(4)); %furthestLengh = double(((C_data.sortData(dataHeight,1) - C_data.sortData(1,1))^2 + (C_data.sortData(dataHeight,2) - C_data.sortData(1,2))^2))^0.5;
         numberOfIntersects = (dataHeight  - 1)*(dataHeight / 2);
         intersections = zeros(numberOfIntersects,5);
         lines = zeros(dataHeight,4);
+        %
+        subplot(handleSubPlotSlidingWindowLEFT); hold on;
+        %
         for iLine = 1:dataHeight
             x = meanForFigure(3)+positions(iLine,3);
             y = meanForFigure(4)+positions(iLine,4);
@@ -159,12 +127,14 @@ for i=1:ii %product angle resolution
             X = double([x x+maxMean*C_data.data(iLine,5)]); %X = double([x x+furthestLengh*C_data.data(iLine,5)]);
             Y = double([y y+maxMean*C_data.data(iLine,6)]); %Y = double([y y+furthestLengh*C_data.data(iLine,6)]);
             
+            
             line(X,Y);
             lines(iLine,:) = [X(1) Y(1) X(2) Y(2)]; 
         end
         
         cappedRunTimes = 0;
-        while(true)
+        bDataToAnalyze = false;
+        while(cappedRunTimes < 3)
             bCapped = false;
             if(numberOfIntersects > numberOfIntersectsTresh)
                 rng('shuffle');
@@ -208,13 +178,21 @@ for i=1:ii %product angle resolution
             intersections = intersections((intersections(:,1) ~= 0 & intersections(:,2) ~= 0),:);
 
             if(size(intersections,1) < 3)
-                continue;
+                if(bCapped)
+                  cappedRunTimes = cappedRunTimes+1;
+                  continue;
+                else
+                    break;
+                end
             end
 
             meanInterSection = mean(intersections);
 
             %calculating the vector from each Matching point to mean center of
             %intersections (ON SHELF)
+            %
+            subplot(handleSubPlotSlidingWindowLEFT); hold on;
+            %
             for iLine = 1:dataHeight
                 xPoint = meanForFigure(3)+positions(iLine,3);
                 yPoint = meanForFigure(4)+positions(iLine,4);
@@ -222,7 +200,7 @@ for i=1:ii %product angle resolution
                 X = double([xPoint meanInterSection(1)]);
                 Y = double([yPoint meanInterSection(2)]);
 
-                line(X,Y , 'Color' , 'red');
+                
 
                 xx = X(2) - X(1);
                 yy = Y(2) - Y(1);
@@ -236,12 +214,16 @@ for i=1:ii %product angle resolution
                 [thetaProduct,~] = cart2pol(C_data.data(iLine,5),C_data.data(iLine,6));
 
                 C_data.data(iLine,9)=(abs(thetaShelf-thetaProduct))*180/pi;
+                
+                %draw matching vectors in red (on sliding window)
+                if(C_data.data(iLine,9) < diffAngleTresh)
+                    line(X,Y , 'Color' , 'red');
+                end
             end
-
             matchInds = find(C_data.data(:,9) < diffAngleTresh);
 
             %if number of matches is below tresh (typ 40%)
-            if(matchInds / dataHeight < abortTresh) 
+            if(size(matchInds,1) / dataHeight < abortTresh) 
                 if(bCapped) 
                     intersectionAndTreshRatio = numberOfIntersects/numberOfIntersectsTresh;
                     if (intersectionAndTreshRatio > 2 && cappedRunTimes < 3)
@@ -251,13 +233,16 @@ for i=1:ii %product angle resolution
                     else
                         %although we are on capped run - other choice of
                         %intersection probably wont help us
-                        continue;
+                        break;
                     end
                 else
-                    continue;
+                    %we are on a regular run with inceficient matches ,
+                    %lets go out to the next sliding window
+                    break;
                 end
             else
                 intersections(:,5) = ismember(intersections(:,3),matchInds) & ismember(intersections(:,4),matchInds);
+                bDataToAnalyze = true;
                 break; % walkaround for the do..while for 1 loop
             end
 
@@ -266,33 +251,14 @@ for i=1:ii %product angle resolution
             cappedRunTimes = cappedRunTimes + 1;
         end
         
-        subplot(h); %subplot(2,4,5);
-        hold on;
-        plot(meanInterSection(1),meanInterSection(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
-
-        %trackingDebug(trackingDebugIndex,6) = timeToc;
-        %trackingDebugIndex = trackingDebugIndex + 1;
+        if(~bDataToAnalyze) %was kicked out of the while(true) with no results
+            continue;
+        end
         
-        % borders of cluster
-%         pLeft = min(C_data.original(dotInds,1));
-%         pUpper = min(C_data.original(dotInds,2));
-%         pRight = max(C_data.original(dotInds,1));
-%         pBottom = max(C_data.original(dotInds,2));
-        % 
-        % ptLeft = min(C_data.sortData(find(C_data.sortData(:,3) > 0),3));
-        % ptUpper = min(C_data.sortData(find(C_data.sortData(:,4) > 0),4));
-        % ptRight = max(C_data.sortData(find(C_data.sortData(:,3) > 0),3));
-        % ptBottom = max(C_data.sortData(find(C_data.sortData(:,4) > 0),4));
-
-%         C_data.varianceRatio = C_data.var(1:2)./C_data.var(3:4);
-%         C_data.stdRatio = C_data.std(1:2)./C_data.std(3:4);
-
-        %ratioX = C_data.stdRatio(1);
-        %ratioY = C_data.stdRatio(2);
-%         C_data.ptRectangleOffset.left = C_data.mean(1) * ratioX;
-%         C_data.ptRectangleOffset.right = (length(pImage(1,:,1)) - C_data.mean(1)) * ratioX;
-%         C_data.ptRectangleOffset.top = C_data.mean(2) * ratioY;
-%         C_data.ptRectangleOffset.bottom = (length(pImage(:,1,1)) - C_data.mean(2)) * ratioY;
+        subplot(handleSubPlotSlidingWindowLEFT);hold on; %subplot(2,4,5);
+        %this will mark the mean of all creteria passed intersections point
+        %[blue and yellow 'o']
+        plot(meanInterSection(1),meanInterSection(2),'bo','MarkerFaceColor','y','LineWidth',2);
 
          C_data.ptRectangleOffset.left = C_data.mean(1);
          C_data.ptRectangleOffset.right = length(pImage(1,:,1)) - C_data.mean(1);
