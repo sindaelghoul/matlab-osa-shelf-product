@@ -73,7 +73,7 @@ for i=1:ii %product angle resolution
         [rect_prod pImage] = ProductGetByIndex(productIndex,i,[]);
         try
         delete(handleSubPlotSlidingWindowLEFT);
-        delete(h2);
+        delete(handleSubPlotSlidingWindowRIGHT);
         catch exp
         end
         
@@ -100,7 +100,9 @@ for i=1:ii %product angle resolution
             C_data.data(iLine,5:6) = V1;
         end
         
-        
+        %this will mark the intersection point [blue and yellow 'o']
+        subplot(handleSubPlotProduct); hold on; %subplot(2,4,1);
+        plot(C_data.mean(1),C_data.mean(2),'bo','MarkerFaceColor','y','LineWidth',2) 
         
         rectX = max(positions(:,1)-1*meanForFigure(3),0); 
         rectY = max(positions(:,2)-1*meanForFigure(4),0);
@@ -114,8 +116,8 @@ for i=1:ii %product angle resolution
         %draw the vectors on the SLIDING WINDOW which captured were on
         %product [blue lines]
         maxMean = max(meanForFigure(3),meanForFigure(4)); %furthestLengh = double(((C_data.sortData(dataHeight,1) - C_data.sortData(1,1))^2 + (C_data.sortData(dataHeight,2) - C_data.sortData(1,2))^2))^0.5;
-        numberOfIntersects = (dataHeight  - 1)*(dataHeight / 2);
-        intersections = zeros(numberOfIntersects,5);
+        numberOfTheoreticalIntersects = (dataHeight  - 1)*(dataHeight / 2);
+        intersections = zeros(numberOfTheoreticalIntersects,5);
         lines = zeros(dataHeight,4);
         %
         subplot(handleSubPlotSlidingWindowLEFT); hold on;
@@ -136,26 +138,34 @@ for i=1:ii %product angle resolution
         bDataToAnalyze = false;
         while(cappedRunTimes < 3)
             bCapped = false;
-            if(numberOfIntersects > numberOfIntersectsTresh)
+            if(numberOfTheoreticalIntersects > numberOfIntersectsTresh)
                 rng('shuffle');
-                intersectPos = randperm(numberOfIntersects);
+                intersectPos = randperm(numberOfTheoreticalIntersects);
                 intersectPos = intersectPos(1:numberOfIntersectsTresh);
-                intersectPos = sort(intersectPos);
+                intersectPos = sort(intersectPos); 
                 bCapped = true;
             end
+            
 
             time = tic;
             %calculating the intersections of all vectors with each other
             iNd = 1;
-            forCounter = 0;
+            forCounter = 1;
             nextVal = 1;
             for line1Index = 1:dataHeight
                 for line2Index = 1:line1Index
                     forCounter = forCounter +1;
                     if(line1Index ~= line2Index)
                         if(bCapped)
-                            if(forCounter ~= intersectPos(nextVal))
+                            if(nextVal > numberOfIntersectsTresh)
+                                break;
+                            end
+                            while(forCounter > intersectPos(nextVal))
+                                nextVal = nextVal+1;
                                 % not right position
+                            end
+                            
+                            if(forCounter ~= intersectPos(nextVal))
                                 continue;
                             else
                                 % position match to random set
@@ -187,7 +197,7 @@ for i=1:ii %product angle resolution
             end
 
             meanInterSection = mean(intersections);
-
+            
             %calculating the vector from each Matching point to mean center of
             %intersections (ON SHELF)
             %
@@ -221,11 +231,17 @@ for i=1:ii %product angle resolution
                 end
             end
             matchInds = find(C_data.data(:,9) < diffAngleTresh);
+            
+            subplot(handleSubPlotSlidingWindowLEFT);hold on; %subplot(2,4,5);          
+            plot(meanForFigure(3)+positions(matchInds,3),meanForFigure(4)+positions(matchInds,4), '*' , 'color' , dotColor , 'MarkerSize',5); 
+            %mean of all creteria passed intersections point [blue and yellow 'o']
+            plot(meanInterSection(1),meanInterSection(2),'bo','MarkerFaceColor','y','LineWidth',2);
+        
 
             %if number of matches is below tresh (typ 40%)
             if(size(matchInds,1) / dataHeight < abortTresh) 
                 if(bCapped) 
-                    intersectionAndTreshRatio = numberOfIntersects/numberOfIntersectsTresh;
+                    intersectionAndTreshRatio = numberOfTheoreticalIntersects/numberOfIntersectsTresh;
                     if (intersectionAndTreshRatio > 2 && cappedRunTimes < 3)
                         %if we got enought data to randomly get a new not
                         %overlapping set in a good propability and we did
@@ -255,21 +271,19 @@ for i=1:ii %product angle resolution
             continue;
         end
         
-        subplot(handleSubPlotSlidingWindowLEFT);hold on; %subplot(2,4,5);
-        %this will mark the mean of all creteria passed intersections point
-        %[blue and yellow 'o']
-        plot(meanInterSection(1),meanInterSection(2),'bo','MarkerFaceColor','y','LineWidth',2);
-
-         C_data.ptRectangleOffset.left = C_data.mean(1);
-         C_data.ptRectangleOffset.right = length(pImage(1,:,1)) - C_data.mean(1);
-         C_data.ptRectangleOffset.top = C_data.mean(2);
-         C_data.ptRectangleOffset.bottom = length(pImage(:,1,1)) - C_data.mean(2);
+        %calculate the position of center @ PRODUCT so we could position
+        %the matching @ SLIDING WINDOW accordingly
+        C_data.ptRectangleOffset.left = C_data.mean(1);
+        C_data.ptRectangleOffset.right = length(pImage(1,:,1)) - C_data.mean(1);
+        C_data.ptRectangleOffset.top = C_data.mean(2);
+        C_data.ptRectangleOffset.bottom = length(pImage(:,1,1)) - C_data.mean(2);
+         
 
 
         %% example of conturing
-        figure(888);
-        subplot(2,4,1);
-        hold on;
+%         figure(888);
+%         subplot(2,4,1);
+%         hold on;
 %         plot(C_data.original(dotInds,1),C_data.original(dotInds,2), '*' , 'color' , dotColor , 'MarkerSize',5);
 %         hold on;
 %         plot(C_data.mean(1),C_data.mean(2), '--rs','LineWidth',2,...
@@ -277,34 +291,24 @@ for i=1:ii %product angle resolution
 %                 'MarkerFaceColor','g',...
 %                 'MarkerSize',10);
 %        hold on;
-        plot(C_data.mean(1),C_data.mean(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
-             
-        figure(888);
-        subplot(2,4,5);
-        hold on;            
-        plot(meanForFigure(3)+positions(matchInds,3),meanForFigure(4)+positions(matchInds,4), '*' , 'color' , dotColor , 'MarkerSize',5); 
         
-        h2 = subplot(2,4,6);
+
+             
+
+        handleSubPlotSlidingWindowRIGHT = subplot(2,4,6);
         imshow(sub_shelf);hold on;
+        %all points
         plot(meanForFigure(3)+positions(:,3),meanForFigure(4)+positions(:,4), 'white*' ,'MarkerSize',5);
+        %matching points
         plot(meanForFigure(3)+positions(matchInds,3),meanForFigure(4)+positions(matchInds,4), '*' , 'Color' , dotColor, 'MarkerSize',5); 
-        plot(meanInterSection(1),meanInterSection(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
+        %mean of matches @ Shelf (no accurate to not matching at all)
+        %[blue and red 'o']
         plot(meanForFigure(3) + C_data.mean(3),meanForFigure(4) + C_data.mean(4),'bo','MarkerFaceColor','r','LineWidth',2) %this will mark the intersection point with red 'o'
-
-        figure(999);
-        subplot(1,2,1);
-        imshow(pImage);hold on;
-        plot(C_data.data(:,1), C_data.data(:,2), 'white*', 'MarkerSize',5);
-        plot(C_data.mean(1),C_data.mean(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
-             
-        subplot(1,2,2);
-        imshow(sub_shelf);hold on;
-        plot(meanForFigure(3)+positions(:,3),meanForFigure(4)+positions(:,4), 'white*' ,'MarkerSize',5);
-        plot(meanForFigure(3)+positions(matchInds,3),meanForFigure(4)+positions(matchInds,4), '*' , 'Color' , dotColor, 'MarkerSize',5); 
-        plot(meanInterSection(1),meanInterSection(2),'bo','MarkerSize',10,'MarkerFaceColor','y','LineWidth',1) %this will mark the intersection point with red 'o'
-        plot(meanForFigure(3) + C_data.mean(3),meanForFigure(4) + C_data.mean(4),'bo','MarkerFaceColor','r','LineWidth',1) %this will mark the intersection point with red 'o'
-
+        %mean of all creteria passed intersections point
+        %[blue and yellow 'o']
+        plot(meanInterSection(1),meanInterSection(2),'bo','MarkerFaceColor','y','LineWidth',2) %this will mark the intersection point with red 'o'
         
+       
         rectangle('Position',[meanInterSection(1) - C_data.ptRectangleOffset.left,...
                               meanInterSection(2) - C_data.ptRectangleOffset.top,...
                               C_data.ptRectangleOffset.left + C_data.ptRectangleOffset.right,...
@@ -313,17 +317,12 @@ for i=1:ii %product angle resolution
            
         %% example of conturing
         
-%         figure(888);
-%         subplot(2,4,[3 4 7 8]);
-%         hold on;
-%         plot(positions(1,1) + C_data.mean(3),positions(1,2) + C_data.mean(4), '--rs','LineWidth',2,...
-%                 'MarkerEdgeColor','k',...
-%                 'MarkerFaceColor','g',...
-%                 'MarkerSize',10);
-%         rectangle('Position',[positions(1,1) + C_data.mean(3) - C_data.ptRectangleOffset.left,...
-%                           positions(1,2) + C_data.mean(4) - C_data.ptRectangleOffset.top,...
-%                           C_data.ptRectangleOffset.left + C_data.ptRectangleOffset.right,...
-%                           C_data.ptRectangleOffset.top + C_data.ptRectangleOffset.bottom]);
+        figure(888); subplot(2,4,[3 4 7 8]);hold on;
+        rectangle('Position',[positions(1,1) + C_data.mean(3) - C_data.ptRectangleOffset.left,...
+                          positions(1,2) + C_data.mean(4) - C_data.ptRectangleOffset.top,...
+                          C_data.ptRectangleOffset.left + C_data.ptRectangleOffset.right,...
+                          C_data.ptRectangleOffset.top + C_data.ptRectangleOffset.bottom]);
+                     
 
     end
 end
