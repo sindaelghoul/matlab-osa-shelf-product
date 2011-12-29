@@ -1,6 +1,11 @@
 %function [ output_args ] = Contouring( input_args )
-clear all; clc; close all;
-load('matlab4838.mat','-mat','trackingDebug','productIndex','colorPlate','ii','matchPoints','routeIndex');
+if(~exist('lab.Shelves','var'))
+    clear all; clc; close all;
+    cform = makecform('srgb2lab');
+    load('matlab4838.mat','-mat','trackingDebug','productIndex','colorPlate','ii','matchPoints','routeIndex');
+    lab.Shelves = applycform(routeIndex.shelves,cform);
+    lab.aDbShelves = lab.Shelves(:,:,2)./lab.Shelves(:,:,3);
+end
 %trackingDebug = double(trackingDebug);
 figure(888);
 subplot(2,4,[3 4 7 8]);
@@ -71,6 +76,8 @@ for i=1:ii %product angle resolution
         %% contour the findings
         %pImage = imread('Names.jpg');
         [rect_prod pImage] = ProductGetByIndex(productIndex,i,[]);
+        lab.Product = applycform(pImage,cform);
+        lab.aDbProduct = lab.Product(:,:,2)./lab.Product(:,:,3);
         try
         delete(handleSubPlotSlidingWindowLEFT);
         delete(handleSubPlotSlidingWindowRIGHT);
@@ -103,10 +110,17 @@ for i=1:ii %product angle resolution
         %this will mark the intersection point [blue and yellow 'o']
         subplot(handleSubPlotProduct); hold on; %subplot(2,4,1);
         plot(C_data.mean(1),C_data.mean(2),'bo','MarkerFaceColor','y','LineWidth',2) 
+        swRect.show.X = max(max(positions(:,1)-1*meanForFigure(3),0)); 
+        swRect.show.Y = max(max(positions(:,2)-1*meanForFigure(4),0));
+        swRect.show.Width = 6*meanForFigure(3);
+        swRect.show.Height = 6*meanForFigure(4);
         
-        rectX = max(positions(:,1)-1*meanForFigure(3),0); 
-        rectY = max(positions(:,2)-1*meanForFigure(4),0);
-        sub_shelf = imcrop(routeIndex.shelves,[rectX(1) rectY(1) 6*meanForFigure(3) 6*meanForFigure(4)] );
+        
+        [sub_shelf swRect.Rect] = imcrop(routeIndex.shelves,[swRect.show.X swRect.show.Y swRect.show.Width swRect.show.Height] );
+        %actual width and height coz of edge cropping
+        swRect.Rect(3) = size(sub_shelf,2);
+        swRect.Rect(4) = size(sub_shelf,1);
+        
         handleSubPlotSlidingWindowLEFT = subplot(2,4,5);
         imshow(sub_shelf);hold on;
         %ploting the matched points on sliding window (unfiltered) [white]
@@ -313,7 +327,21 @@ for i=1:ii %product angle resolution
                               meanInterSection(2) - C_data.ptRectangleOffset.top,...
                               C_data.ptRectangleOffset.left + C_data.ptRectangleOffset.right,...
                               C_data.ptRectangleOffset.top + C_data.ptRectangleOffset.bottom]);
-            
+        
+        %histogram
+
+        
+         figure(1999); 
+         subplot(1,2,1); imshow(lab.Shelves(swRect.Rect(2):(swRect.Rect(2)+swRect.Rect(4)-1),swRect.Rect(1):(swRect.Rect(1)+swRect.Rect(3)-1),:)); %[rectX(1) rectY(1) 6*meanForFigure(3) 6*meanForFigure(4)]
+         subplot(1,2,3); imshow(lab.Product);
+%         
+        figure(999); 
+        subplot(2,2,1); hist(sub_shelf(meanInterSection(1),meanInterSection(2))); title('shelf mean');
+        subplot(2,2,2); hist(pImage(C_data.mean(1),C_data.mean(2))); title('product mean');
+        subplot(2,2,3); hist(sub_shelf(meanForFigure(3)+positions(matchInds,3),meanForFigure(4)+positions(matchInds,4)));
+        subplot(2,2,4); hist(pImage(C_data.data(:,1), C_data.data(:,2)));
+
+
            
         %% example of conturing
         
