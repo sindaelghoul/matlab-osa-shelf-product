@@ -6,11 +6,11 @@ close all;
 % Get the Key Points
   Options.upright=true;
   Options.tresh=0.0001;
-  if(isempty(Ipts1))
+  %if(isempty(Ipts1))
       overallTime = tic;
       Ipts1=OpenSurf(I1,Options);
       disp(['shelf SURF process took ' num2str(toc(overallTime)) 'seconds']);
-  end
+  %end
   overallTime = tic;
   Ipts2=OpenSurf(I2,Options);
   disp(['product SURF process took ' num2str(toc(overallTime)) 'seconds']);

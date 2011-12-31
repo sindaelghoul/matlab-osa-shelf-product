@@ -1,22 +1,18 @@
-%function [ output_args ] = ReadSURFDescriptors( Image , Options )
-    [s, w] = dos('set NUMBER_OF_PROCESSORS');
-    num_CPUs = sscanf(w, '%*21c%d', [1, Inf]);
-    Image=imread('pics/shelf40.jpg');
-    [nR, nC] = size(Image);
-    % Get the Key Points
-    Options.upright=true;
-    Options.tresh=0.0001;
+function [ ImageBitMap , pts ] = ReadSURFDescriptors( Image )
+    global SurfOptions;
+    surfProcess = tic;
+    pts = OpenSurf(Image,SurfOptions);
+    disp(['SURF process took ' num2str(toc(surfProcess)) 'seconds']);
+
+    ImageBitMap = uint16(zeros(size(Image,1),size(Image,2)));
     
-    overallTime = tic;
-    matrixPart = ceil(nR/num_CPUs);
-    for i=1:num_CPUs
-        pts = OpenSurf(Image((1 + matrixPart*(i-1)):min((matrixPart*i),nR),:,:),Options);
-        Ipts(i).pts = pts;
-        Ipts(i).size = size(pts,2); 
+    for i=1:size(pts,2)
+        x = round(pts(i).x);
+        y = round(pts(i).y);
+        ImageBitMap(y,x) = i;
     end
-    
-    disp(['SURF process took ' num2str(toc(overallTime)) 'seconds']);
 
 
-%end
+
+end
 
