@@ -35,7 +35,8 @@ Pos2=Pos2(1:30,:);
 
 % Show both images
 I = zeros([size(I1,1) size(I1,2)*2 size(I1,3)]);
-I(:,1:size(I1,2),:)=I1; I(:,size(I1,2)+1:size(I1,2)+size(I2,2),:)=I2;
+I(:,1:size(I1,2),:)=I1;
+I(:,size(I1,2)+1:size(I1,2)+size(I2,2),:)=I2;
 figure, imshow(I); hold on;
 
 % Show the best matches

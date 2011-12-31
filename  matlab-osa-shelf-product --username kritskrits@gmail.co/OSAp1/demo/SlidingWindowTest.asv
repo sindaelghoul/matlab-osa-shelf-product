@@ -6,6 +6,16 @@ global totalMatches;
 global bShowSegmentedShelvesWhileSW;
 global bDebug;
 
+% Add subfunctions to Matlab Search path
+cd('..\OpenSURF\');
+functionname='OpenSurf.m';
+functiondir=which(functionname);
+functiondir=functiondir(1:end-length(functionname));
+addpath(functiondir);
+addpath([functiondir '/WarpFunctions']);
+
+cd('..\OpenSURF\');
+
 bDebug = true;
 bCalcEmptyPlace = true;
 bShowSegmentedShelvesWhileSW = true;
