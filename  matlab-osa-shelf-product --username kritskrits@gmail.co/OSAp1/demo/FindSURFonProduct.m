@@ -1,8 +1,8 @@
 function [ productIndex ] = FindSURFonProduct( productIndex )
 
-    global SurfOptions;
+    global SurfProductOptions;
     global num_CPUs;
-    options = SurfOptions;
+    options = SurfProductOptions;
     
     totalSize = 0;
     jobsPerCpu = 1;

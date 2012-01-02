@@ -1,7 +1,7 @@
 function [ ImageBitMap , pts ] = ReadSURFDescriptors( Image )
-    global SurfOptions;
+    global SurfShelfOptions;
     surfProcess = tic;
-    pts = OpenSurf(Image,SurfOptions);
+    pts = OpenSurf(Image,SurfShelfOptions);
     disp(['SURF process took ' num2str(toc(surfProcess)) 'seconds']);
 
     ImageBitMap = uint16(zeros(size(Image,1),size(Image,2)));

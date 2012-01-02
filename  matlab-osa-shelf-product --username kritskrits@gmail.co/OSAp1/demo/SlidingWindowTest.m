@@ -5,7 +5,8 @@ global bWasInitSwOnce;
 global totalMatches;
 global bShowSegmentedShelvesWhileSW;
 global bDebug;
-global SurfOptions;
+global SurfShelfOptions;
+global SurfProductOptions;
 global num_CPUs;
 
 WholeTime = tic;
@@ -13,10 +14,12 @@ SURFerrorTresh = 0.18;
 [s, w] = dos('set NUMBER_OF_PROCESSORS');
 num_CPUs = sscanf(w, '%*21c%d', [1, Inf]);
 
-isOpen = matlabpool('size') > 0;
-if(~isOpen)
-    matlabpool open
-    %matlabpool(num_CPUs);
+if ~verLessThan('matlab', '7.13')
+    isOpen = matlabpool('size') > 0;
+    if(~isOpen)
+        matlabpool open
+        %matlabpool(num_CPUs);
+    end
 end
 
 
@@ -30,8 +33,11 @@ addpath([functiondir '/WarpFunctions']);
 
 cd('..\demo\');
 
-SurfOptions.upright=true;
-SurfOptions.tresh=0.0001;
+SurfShelfOptions.upright=true;
+SurfShelfOptions.tresh=0.0001;
+
+SurfProductOptions.upright=true;
+SurfProductOptions.tresh=0.0001;
 
 bDebug = true;
 bCalcEmptyPlace = true;
@@ -56,6 +62,7 @@ shelfWindowIndex = 1;
 [shelfObject shelves] = shelfDetectInit( shelves_FileLocation , shelfColor_FileLocation,shelfEmptyColor_FileLocation );
 shelves_details = shelfDetect( shelfObject , bCalcEmptyPlace ); %bools = debug,Calculate free space on shelf
 
+figure(999); imshow(shelves);
 [productIndex] = ProductInit(product_FileLocation,shelves_details); %plus fix resolution
 
 [ shelves_details ] = FindSURFonSegmentedShelf( shelves_details );
@@ -105,7 +112,6 @@ for ii=1:productIndex.Length
     
     % Show the best matches
     for i=1:size(cor1,2),
-        %c=rand(1,3);
         x = shelfSURFdesc(cor1(i)).x;
         y = shelfSURFdesc(cor1(i)).y;
         
@@ -115,7 +121,12 @@ for ii=1:productIndex.Length
         bottomOffset = min(y+offset,size(shelves,1));
         
         segmentedShelf(upperOffset:bottomOffset,leftOffset:rightOffset) = 255;
-        %plot([shelfSURFdesc(cor1(i)).x],[shelfSURFdesc(cor1(i)).y],'o','Color',c)
+        
+        if(bDebug)
+            c=rand(1,3);
+            figure(999);hold on;
+            plot([shelfSURFdesc(cor1(i)).x],[shelfSURFdesc(cor1(i)).y],'o','Color',c);
+        end
     end
 end
 disp(['total matches : '  num2str(toc(totalMatches)) 'seconds']);
