@@ -118,14 +118,20 @@ for ii=1:productIndex.Length
         sw.product.index = ii;
         sw.product.x = productSURFdesc(cor2(i)).x;
         sw.product.y = productSURFdesc(cor2(i)).y;
+        sw.product.leftOffset = max(0,sw.product.x-offset);
+        sw.product.rightOffset = min(sw.product.x+offset,size(productIndex.Products(1,sw.product.index).product,2));
+        sw.product.upperOffset = max(0,sw.product.y-offset);
+        sw.product.bottomOffset = min(sw.product.y+offset,size(productIndex.Products(1,sw.product.index).product,1));
+        
+        
         sw.shelf.x = shelfSURFdesc(cor1(i)).x;
         sw.shelf.y = shelfSURFdesc(cor1(i)).y;
-        sw.leftOffset = max(0,x-offset);
-        sw.rightOffset = min(x+offset,size(shelves,2));
-        sw.upperOffset = max(0,y-offset);
-        sw.bottomOffset = min(y+offset,size(shelves,1));
+        sw.shelf.leftOffset = max(0,x-offset);
+        sw.shelf.rightOffset = min(x+offset,size(shelves,2));
+        sw.shelf.upperOffset = max(0,y-offset);
+        sw.shelf.bottomOffset = min(y+offset,size(shelves,1));
         
-        segmentedShelf(sw.upperOffset:sw.bottomOffset,sw.leftOffset:sw.rightOffset) = 255;
+        segmentedShelf(sw.shelf.upperOffset:sw.shelf.bottomOffset,sw.shelf.leftOffset:sw.shelf.rightOffset) = 255;
         
         %ColorSegmentation(shelves_details,productIndex);
         

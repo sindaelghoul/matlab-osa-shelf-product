@@ -1,50 +1,69 @@
 %function [ output_args ] = ColorSegmentation( shelves_details,productIndex )
 figure(555);
 %shelf
-shelfWindow = shelves_details.shelfObject.shelves(sw.upperOffset:sw.bottomOffset,sw.leftOffset:sw.rightOffset,:);
-shelfLabWindow = shelves_details.shelfObject.shelfCIELAB(sw.upperOffset:sw.bottomOffset,sw.leftOffset:sw.rightOffset,:);
+shelfWindow = shelves_details.shelfObject.shelves(sw.shelf.upperOffset:sw.shelf.bottomOffset,sw.shelf.leftOffset:sw.shelf.rightOffset,:);
+shelfLabWindow = shelves_details.shelfObject.shelfCIELAB(sw.shelf.upperOffset:sw.shelf.bottomOffset,sw.shelf.leftOffset:sw.shelf.rightOffset,:);
 %color
-subplot(3,4,1);
+subplot(3,5,1);
 imshow(shelfWindow);
+hold on;plot((sw.shelf.rightOffset-sw.shelf.leftOffset)/2,(sw.shelf.bottomOffset-sw.shelf.upperOffset)/2,'o','Color','white');
+
+%histogram color
+subH = subplot(3,5,2);
+rgbhist(shelfWindow,subH);
 
 %cielab
-subplot(3,4,2);
+subplot(3,5,3);
 imshow(shelfLabWindow);
 
-subplot(3,4,3);
+%histogram cielab
+subH = subplot(3,5,4);
+rgbhist(shelfLabWindow,subH);
 
 %orientation
-subplot(3,4,4);
-offset = 100;
+subplot(3,5,5);
+shelfPresentationOffset = 100;
 %leftOffset = max(sw.shelf.x - offset,0);
 %upOffset = min(sw.shelf.y - offset,size(shelves_details.shelfObject.shelves,1));
-rect = [sw.shelf.x - offset,sw.shelf.y - offset,2*offset,2*offset]
+rect = [sw.shelf.x - shelfPresentationOffset,sw.shelf.y - shelfPresentationOffset,2*shelfPresentationOffset,2*shelfPresentationOffset];
 croppedShelf = imcrop(shelves_details.shelfObject.shelves,rect);
 imshow(croppedShelf);
-hold on;plot(offset,offset,'o','Color','white');
-hold on;rectangle('Position',[sw.upperOffset,sw.leftOffset,2*(sw.bottomOffset-sw.upperOffset),2*(sw.rightOffset-sw.leftOffset)]);
+hold on;rectangle('Position',[shelfPresentationOffset-(sw.shelf.rightOffset-sw.shelf.leftOffset)/2,shelfPresentationOffset - (sw.shelf.bottomOffset-sw.shelf.upperOffset)/2,(sw.shelf.rightOffset-sw.shelf.leftOffset),(sw.shelf.bottomOffset-sw.shelf.upperOffset)],'EdgeColor','white');
         
 %product
-%color
-subplot(3,4,5);
-imshow(productIndex.Products(1,sw.product.index).product);
-%cielab
-subplot(3,4,6);
-imshow(productIndex.Products(1,sw.product.index).ProductCIELAB);
+productWindow = productIndex.Products(1,sw.product.index).product(sw.product.upperOffset:sw.product.bottomOffset,sw.product.leftOffset:sw.product.rightOffset,:);
+productLabWindow = productIndex.Products(1,sw.product.index).ProductCIELAB(sw.product.upperOffset:sw.product.bottomOffset,sw.product.leftOffset:sw.product.rightOffset,:);
 
-subplot(3,4,7);
+%color
+subplot(3,5,6);
+imshow(productWindow);
+hold on;plot((sw.product.rightOffset-sw.product.leftOffset)/2,(sw.product.bottomOffset-sw.product.upperOffset)/2,'o','Color','white');
+
+%histogram color
+subH = subplot(3,5,7);
+rgbhist(productWindow,subH);
+
+%cielab
+subplot(3,5,8);
+imshow(productLabWindow);
+
+%histogram cielab
+subH = subplot(3,5,9);
+rgbhist(productLabWindow,subH);
 
 %orientation
-subplot(3,4,8);
+subplot(3,5,10);
 imshow(productIndex.Products(1,sw.product.index).product);
-hold on;plot(sw.shelf.x,sw.shelf.y,'o','Color','white');
-
+%hold on;plot(sw.shelf.x,sw.shelf.y,'o','Color','white');
+hold on;rectangle('Position',[sw.product.x-(sw.shelf.rightOffset-sw.shelf.leftOffset)/2,sw.product.y - (sw.shelf.bottomOffset-sw.shelf.upperOffset)/2,(sw.shelf.rightOffset-sw.shelf.leftOffset),(sw.shelf.bottomOffset-sw.shelf.upperOffset)],'EdgeColor','white');
+   
 %histogram
 %color
-subplot(3,4,1);
+subH = subplot(3,5,12);
+rgbhistDelta(shelfWindow,productWindow,subH);
 %cielab
-subplot(3,4,2);
-subplot(3,4,3);
-subplot(3,4,4);
+subH = subplot(3,5,14);
+rgbhistDelta(shelfLabWindow,productLabWindow,subH);
+
 %end
 
