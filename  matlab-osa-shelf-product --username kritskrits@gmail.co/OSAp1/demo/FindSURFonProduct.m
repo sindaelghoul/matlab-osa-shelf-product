@@ -3,6 +3,8 @@ function [ productIndex ] = FindSURFonProduct( productIndex )
     global SurfProductOptions;
     global num_CPUs;
     options = SurfProductOptions;
+    cform = makecform('srgb2lab');
+
     
     totalSize = 0;
     jobsPerCpu = 1;
@@ -35,6 +37,10 @@ function [ productIndex ] = FindSURFonProduct( productIndex )
             index = pts(i).pts(j).index;
             points = pts(i).pts(j).pts;
             [productIndex.Products(index).rect productIndex.Products(index).product] = ProductGetByIndex(productIndex,index,[]); 
+                        
+            %CIELAB piggybag
+            productIndex.Products(index).ProductCIELAB = applycform(productIndex.Products(index).product,cform);
+                
             ImageBitMap = uint16(zeros(size(productIndex.Products(index).product,1),size(productIndex.Products(index).product,2)));
             
             for ii=1:size(points,2)
@@ -42,6 +48,7 @@ function [ productIndex ] = FindSURFonProduct( productIndex )
                 y = round(points(ii).y);
                 ImageBitMap(y,x) = ii;
             end
+            
             
             productIndex.SURF.Products(index).pts = points;
             productIndex.SURF.Products(index).bitmap = ImageBitMap;
