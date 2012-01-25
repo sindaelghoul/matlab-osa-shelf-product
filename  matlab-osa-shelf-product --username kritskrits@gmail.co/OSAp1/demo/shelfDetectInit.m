@@ -1,5 +1,7 @@
 function [ shelfObject shelves ] = shelfDetectInit( shelves_FileLocation , shelfColor_FileLocation ,shelfEmptyColor_FileLocation )
     global bDebug;
+    global bCheckPoint;
+    
     
     shelfObject.shelves_FileLocation = shelves_FileLocation;
     shelves = imread(shelves_FileLocation);

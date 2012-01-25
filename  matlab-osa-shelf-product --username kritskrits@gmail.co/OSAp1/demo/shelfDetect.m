@@ -1,5 +1,8 @@
 function [shelfDetails] = shelfDetect( shelfObject ,bCalculateEmptySpace)
     global bDebug;
+    global bCheckPoint;
+   
+    
     %%
     shelfDetails.shelfObject = shelfObject;
     shelfDetails.sigmentedShelves = zeros(size(shelfObject.segmented));

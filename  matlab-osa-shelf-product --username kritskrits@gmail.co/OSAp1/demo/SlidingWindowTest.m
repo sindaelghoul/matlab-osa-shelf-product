@@ -1,5 +1,12 @@
 %%
-clear all;clc;close all;
+global bCheckPoint;
+bCheckPoint = true;
+if(~bCheckPoint)
+    clear all
+    bCheckPoint = false;
+end
+clc;close all;
+
 %%
 global bWasInitSwOnce;
 global totalMatches;
@@ -8,6 +15,7 @@ global bDebug;
 global SurfShelfOptions;
 global SurfProductOptions;
 global num_CPUs;
+
 
 WholeTime = tic;
 SURFerrorTresh = 0.18;
@@ -65,19 +73,23 @@ shelves_details = shelfDetect( shelfObject , bCalcEmptyPlace ); %bools = debug,C
 figure(999); imshow(shelves);
 [productIndex] = ProductInit(product_FileLocation,shelves_details); %plus fix resolution
 
-[ shelves_details ] = FindSURFonSegmentedShelf( shelves_details );
-
-[ productIndex ] = FindSURFonProduct( productIndex );
+if(~bCheckPoint)
+    [ shelves_details ] = FindSURFonSegmentedShelf( shelves_details );
+    backUpVersion_shelves_details = shelves_details;
+    [ productIndex ] = FindSURFonProduct( productIndex );
+    backUpVersion_productIndex = productIndex;
+else
+    shelves_details = backUpVersion_shelves_details;
+    productIndex = backUpVersion_productIndex;
+end
 
 colorPlate=hsv(100);
 routeIndex = [];
 %figure(777);imshow(routeIndex.shelves); hold on; %inside SWinit now
 
 matchPoints = [];
-
-
 segmentedShelf = uint8(zeros(size(shelves,1),size(shelves,2)));
-offset = 10;
+offset = 12;
 
 bitmap = shelves_details.SURF.bitmap;
 ind = find(bitmap > 0);
@@ -131,14 +143,57 @@ for ii=1:productIndex.Length
         sw.shelf.upperOffset = max(0,y-offset);
         sw.shelf.bottomOffset = min(y+offset,size(shelves,1));
         
-        segmentedShelf(sw.shelf.upperOffset:sw.shelf.bottomOffset,sw.shelf.leftOffset:sw.shelf.rightOffset) = 255;
-        
-        %ColorSegmentation(shelves_details,productIndex);
-        
+
+        sw.shelf.shelfWindow = shelves_details.shelfObject.shelves(sw.shelf.upperOffset:sw.shelf.bottomOffset,sw.shelf.leftOffset:sw.shelf.rightOffset,:);
+        sw.shelf.shelfLabWindow = shelves_details.shelfObject.shelfCIELAB(sw.shelf.upperOffset:sw.shelf.bottomOffset,sw.shelf.leftOffset:sw.shelf.rightOffset,:);
+        sw.product.productWindow = productIndex.Products(1,sw.product.index).product(sw.product.upperOffset:sw.product.bottomOffset,sw.product.leftOffset:sw.product.rightOffset,:);
+        sw.product.productLabWindow = productIndex.Products(1,sw.product.index).ProductCIELAB(sw.product.upperOffset:sw.product.bottomOffset,sw.product.leftOffset:sw.product.rightOffset,:);
+
+        %values 0..1
+        corrRGBorig = HistsCorrelation(sw.shelf.shelfWindow,sw.product.productWindow,[1,2,3])
+        corrRGB = mean(corrRGBorig);
+        corrRGBmin = min(corrRGBorig);
+        corrLABorig = HistsCorrelation(sw.shelf.shelfLabWindow,sw.product.productLabWindow,[1,2,3])
+        corrLAB = mean(corrLABorig);
+        corrLABmin = min(corrLABorig);
+        bPaint = true;
         if(bDebug)
+            %ShowColorSegmentation(sw,shelves_details,productIndex);
             c=rand(1,3);
             figure(999);hold on;
-            plot([shelfSURFdesc(cor1(i)).x],[shelfSURFdesc(cor1(i)).y],'o','Color',c);
+            tRGB = 0.74;
+            tLAB = 0.72;
+            bCP = false;
+            if(shelfSURFdesc(cor1(i)).x > 870 && shelfSURFdesc(cor1(i)).x < 893 && shelfSURFdesc(cor1(i)).y > 945 && shelfSURFdesc(cor1(i)).y < 1215)
+                %ShowColorSegmentation(sw,shelves_details,productIndex);
+                %bCP = true;
+            end
+            if(corrRGB > tRGB && corrLAB > tLAB)
+                plot([shelfSURFdesc(cor1(i)).x],[shelfSURFdesc(cor1(i)).y],'o','Color','green');
+            else
+                %ShowColorSegmentation(sw,shelves_details,productIndex);
+                if (corrRGB > tRGB*1.1 && corrLABmin > 0.25)
+                    plot([shelfSURFdesc(cor1(i)).x],[shelfSURFdesc(cor1(i)).y],'o','Color','yellow');
+                else
+                    if (corrLAB > tLAB)
+                        plot([shelfSURFdesc(cor1(i)).x],[shelfSURFdesc(cor1(i)).y],'o','Color','blue');
+                    else
+                        if(corrLAB > 0.4 && mean(corrRGBorig(2:3)) > tRGB*0.9 && abs(corrRGBorig(2)-corrRGBorig(3)) < 0.15 && mean(corrRGBorig(2:3)) - corrRGBorig(1) > 0.4 )
+                            %ShowColorSegmentation(sw,shelves_details,productIndex);
+                            plot([shelfSURFdesc(cor1(i)).x],[shelfSURFdesc(cor1(i)).y],'o','Color','white');
+                        else
+                            %ShowColorSegmentation(sw,shelves_details,productIndex);
+                            bPaint = false;
+                            plot([shelfSURFdesc(cor1(i)).x],[shelfSURFdesc(cor1(i)).y],'o','Color','red');
+                        end
+                    end
+                end
+            end
+        end
+        if (bPaint)
+            segmentedShelf(sw.shelf.upperOffset:sw.shelf.bottomOffset,sw.shelf.leftOffset:sw.shelf.rightOffset) = 255;
+        else
+            segmentedShelf(sw.shelf.upperOffset:sw.shelf.bottomOffset,sw.shelf.leftOffset:sw.shelf.rightOffset) = 0;
         end
     end
 end
